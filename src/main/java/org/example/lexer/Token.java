@@ -3,7 +3,6 @@ package org.example.lexer;
 public enum Token {
     WHILE("WHILE"),
     IF("IF"),
-    ELSE_IF("ELIF"),
     ELSE("ELSE"),
     IDENTIFIER,
 
@@ -17,24 +16,25 @@ public enum Token {
     MORE_OR_EQUAL_THAN(">="),
 
     SEMICOLON(";"),
-    THEN("THEN"),
-    END("END"),
-    RETURN("RETURN"),
+    BLOCK_DELIMITER_L("{"),
+    BLOCK_DELIMITER_R("}"),
+    RETURN("return"),
+
+    DOUBLE("dpf"),
+    INTEGER("int"),
+    DATETIME("dat"),
 
     PLUS("+"),
     MINUS("-"),
     MULTIPLY("*"),
     DIVIDE("/"),
 
-    STRING_LITERAL_DELIMITER("\""),
+    STRING_LITERAL_DELIMITER_L("["),
+    STRING_LITERAL_DELIMITER_R("]"),
 
     // Multiple conventions. First occurrence determines newline char sequence
     EOL,
-    EOF,
-
-    INT,
-    DOUBLE,
-    STRING;
+    EOF;
 
     Token() {}
     Token(String keyword) {
