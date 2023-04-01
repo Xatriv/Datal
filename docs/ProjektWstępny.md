@@ -2,33 +2,34 @@
 ### Author: Maksymilian Łazarski
 
 ## 0. Introduction
-DATAL is a simple imperative, dynamically- and weakly-typed language with a built-in
-support for datetime and duration types.
+DATAL is a simple imperative, dynamically- and weakly-typed language with a built-in support for datetime and period
+types. The project involves a language interpreter that can be customized, depending on the needs of the user.
 
 ## 1. Requirements
 ### Functional
 Language provides
-* two types of explicit primitives: integer (`int`) and double-precision floating-point (`dbl`)
-* datetime type (`dat`), which stores an unsigned int of seconds since UNIX epoch until specified point in time
-* period type (`per`), which stores an unsigned int of seconds that represent a specified duration
-* built-in members for `dat` and `per` types that allow for extracting time information in different units from the
+* two types of primitives: integer and double-precision floating-point
+* datetime type, which stores an array of independent unsigned integers that represent a date composed of different time
+units
+* period type, which stores an information about time difference between two points in time, or explicit difference
+specified by the user, and information about era (AC or BC; AC - by default)
+* built-in members for datetime and period types that allow for extracting time information in different units from the
 variable
-* boolean logic, e.g. negation conjunction and alternative
-* comparisons, e.g. relational operators, equality, inequality
-* functions of specified type (one of four previously mentioned)
-* built-in print() function that may take multiple parameters
-* built-in input() function that accepts text input provided in the command line
+* boolean logic, i.e. negation, conjunction and alternative
+* comparisons, i.e. relational operators
+* functions, including:
+  * built-in print() function that may take multiple parameters
+  * built-in input() function that accepts text input provided in the command line
 * lexical, syntactic and semantic error signaling, complete with pointing to the error location in source
 
 Language ensures
-* limited number of parameters (to 64)
 * unique identifiers by appending new ones to the map (within each block of code)
 * correct interpretation of newline characters through detection of its first occurrence and then recognition of only
-  this character. Supported newline
+  this character. Supported newline characters are: \n, \n\r, \r\n
 
 ### Nonfunctional
 Language will be safe in that it will:
-* limit the lengths of identifiers and string literals
+* allow for limiting the lengths of identifiers and string literals
 * will accept input stream of potentially unlimited length, without storing everything in memory
 
 Language will be convenient thanks to:
@@ -42,26 +43,34 @@ Language will be convenient thanks to:
 whitespace      [ |\n|\t]
 eol             \n\r|\r\n|\n
 digit           [0-9]
-double          -?([0-9])+\.([0-9])+
-int             -?[0-9]
-dateType        [0-9]{1,6}[yY]:[0-9]{1,2}[mM]:[0-9]{1,2}[dD]:[0-9]{1,2}\':[0-9]{1,2}\"
-yearUnit        [0-9]{1,6}[yY]
-monthUnit       [0-9]{1,2}[mM]
-dayUnit         [0-9]{1,8}[dD]
-hourUnit        [0-9]{1,8}[hH]
-minuteUnit      [0-9]{1,8}\'
-secondUnit      [0-9]{1,8}\"
-arithmOp        [\+\-\*\-]
+intLiteral      0|-?[1-9][0-9]*
+doubleLiteral   -?([0-9])+\.([0-9])+
+dateLiteral     [1-9][0-9]*([yY]|AC|BC):[1-9][0-9]?[mM]:[1-9][0-9]?[dD]:[1-9][0-9]?[hH]:[1-9][0-9]?\':[1-9][0-9]?\"
+yearUnit        [0-9][yY]
+monthUnit       [0-9][mM]
+dayUnit         [0-9][dD]
+hourUnit        [0-9][hH]
+minuteUnit      [0-9]\'
+secondUnit      [0-9]\"
+addOp           [\+\-]
+multOp          [\*\\]
 andOp           and
 orOp            or
-gtOp            \>
-ltOp            \<
-leOp            \<\=
-geOp            \>\=
-eqOp            \.\=
-neOp            \!\=
+notOp           not
 assignOp        \=
+memberOp        \.
+separOp         \,
+if              if
+while           while
+parOpen         "("
+parClose        ")"
+strDelimL       "["
+strDelimR       "]"
+blockOpen       "{"
+blockClose      "}"
 return          return
+escapeChar      \\[n|r|t|f|b|\\|]);
+compOp          [\>|\<|\<\=|\>\=|\=\=|\!\=]
    
 ```
 
@@ -71,77 +80,60 @@ return          return
 char            = ? every UTF-8 character ?;  
 
 (*Non-terminal symbols*)
-
-compOp          = ">"
-                | "<"
-                | "<="
-                | ">="
-                | "=="
-                | "!=";
-
-specialSymbol   = arithmOp | [\\\(\)\=.\,\!\[\]\(\)\{\}\<\>\|\:\;\'\"] TODO
+specialSymbol   = addOp | multOp | assignOp | memberOp | "\\" | "!" | ":" | ";" | "'" | "\"" | "," | "" | "" 
+                | "(" | ")" | "[" | "]" | "{" | "}" | "<" | ">";
  
-escapeChar      = "\", ["n" | "r" | "t" | "\" | "]" ];
 
-string          = "[", {escapeChar | char-"]"}, "]";
-
-periodType      = dayUnit, [hourUnit], [minuteUnit], [secondUnit]
-                | [dayUnit], hourUnit, [minuteUnit], [secondUnit]
-                | [dayUnit], [hourUnit], minuteUnit, [secondUnit]
-                | [dayUnit], [hourUnit], [minuteUnit], secondUnit;
-
-type            = "int" 
-                | "dbl"
-                | "dat" 
-                | "per";
-
-literal         = int
-                | double
-                | dateType
-                | periodType;
+stringChar      = escapeChar | char;
+stringLiteral   = strDelimL, {stringChar}, strDelimR;
 
 
-boolOp          = andOp
-                | orOp;
+durationLiteral = yearUnit, [monthUnit], [dayUnit], [hourUnit], [minuteUnit], [secondUnit]
+                | [yearUnit], monthUnit, [dayUnit], [hourUnit], [minuteUnit], [secondUnit]
+                | [yearUnit], [monthUnit], dayUnit, [hourUnit], [minuteUnit], [secondUnit]
+                | [yearUnit], [monthUnit], [dayUnit], hourUnit, [minuteUnit], [secondUnit]
+                | [yearUnit], [monthUnit], [dayUnit], [hourUnit], minuteUnit, [secondUnit]
+                | [yearUnit], [monthUnit], [dayUnit], [hourUnit], [minuteUnit], secondUnit;
+
+literal         = intLiteral
+                | doubleLiteral
+                | dateLiteral
+                | durationLiteral
+                | stringLiteral;
+
 
 ident           = char - (specialSymbol | digit), {char-specialSymbol};
 
-definition      =  type, ident, ["=", (literal | ident)]; 
+value           = literal
+                | ident
+                | funcCall; 
+memberExpr      = ident, {memberOp, ident};
+negExpr         = [notOp], memberExpr;
+multExpr        = negExpr, {multOp, negExpr};
+addExpr         = multExpr, {addOp, multExpr};
+compExpr        = addExpr, {compOp, addExpr};
+andExpr         = compExpr, {andOp, compExpr};
+orExpr          = andExpr, {orOp, andExpr};
+expr            = orExpr;
+assignment      = ident, assignOp, expr;
 
+condStmt        = if, parOpen, expr, parClose, blockOpen, {statement}, blockClose,
+                  ["else", blockOpen, {statement}, blockClose];
+loopStmt        = while, parOpen expr parClose, blockOpen, {statement}, blockClose;
 
+param           = expr, {separOp, expr};
+funcCall        = ident, parOpen, [param], parClose;
+returnStmt      = return, expr, ";";
 
-boolExpr        =  literal | digit , boolOp 
-                | ["not"], boolExpr, [boolOp], boolExpr TODO pozbyć się  rekursji
+statement       = assignment, ";"
+                | funcCall, ";"
+                | condStmt
+                | loopStmt
+                | returnStmt;
 
-arithmExpr      = expr, arithmOp, expr; TODO pozbyć się  rekursji
+function        = ident, parOpen, [param], parClose, blockOpen, {statement}, return, expr, blockClose
 
-comp            = arithmExpr, compOp, arithmExpr; 
-
-
-condStmt        = "if", "(", boolExpr, ")", "{", {statement}, "}", ["else", "{", {statement}, "}"];
-
-loopStmt        = "while", "(", boolExpr, ")", "{", {statement}, "}";
-
-funcCall        = ident, "(", {type, ident}, ")";
-
-expr            = boolExpr
-                | arithmExpr; TODO more
-
-assignment      = ident, "=", 
-
-param           = type, ident, {",", type, ident};
-
-statement       = expr, ";"
-                | definition , ";"
-                | condition, ";"
-                | funcCall, ";"     TODO recursion
-                | condStmt          TODO recursion
-                | loopStmt          TODO recursion
-                | return statement; TODO more
-
-function        = type, ident, "(", [param], ")", "{", {statement}, return, expr, "}"
-
-program         = {function | statement};
+program         = {function};
 ```
 
 
@@ -150,7 +142,7 @@ program         = {function | statement};
 ## 3. Operators precedence and compatibility
 | precedence | operator                       | Description                        | Associativity |
 |------------|--------------------------------|------------------------------------|---------------|
-| 0          | f()  <br /> :                  | Function call <br /> Member access | left          |
+| 0          | f()  <br /> .                  | Function call <br /> Member access | left          |
 | 1          | not                            | Negation                           | right         |
 | 2          | *  <br /> /                    | Multiplication <br /> Division     | left          |
 | 3          | +  <br /> -                    | Addition <br /> Subtraction        | left          |
@@ -170,10 +162,10 @@ they aren't.
 
 | A\B | int | dbl | dat | per |
 |-----|-----|-----|-----|-----|
-| int | int | dbl | !   | per |
-| dbl | dbl | dbl | !   | per |
+| int | int | dbl | !   | TBD |
+| dbl | dbl | dbl | !   | TBD |
 | dat | !   | !   | !   | !   |
-| per | per | per | !   | !   |
+| per | TBD | TBD | !   | !   |
 
 Division
 
@@ -182,11 +174,10 @@ Division
 | int | dbl | dbl | !   | !   |
 | dbl | dbl | dbl | !   | !   |
 | dat | !   | !   | !   | !   |
-| per | per | per | !   | !   |
+| per | TBD | TBD | !   | !   |
 
-Note: both multiplication and division with `per` type may cause floating point error no larger than
-1 second. That is because of how `dat` and `per` store their values (TODO see Chapter 1. Requirements-Functional) .
-Also, one may notice that dat type doesn't support multiplication or division. It is to prevent confusion
+Note: 
+One may notice that dat type doesn't support multiplication or division. It is to prevent confusion
 with how the user may interpret this type versus how it's actually implemented, while the benefit of implementing
 `*` or `/` for `dat` would be negligible.
 
@@ -196,19 +187,19 @@ Addition & Subtraction
 |-----|-----|-----|-----|-----|
 | int | int | dbl | !   | !   |
 | dbl | dbl | dbl | !   | !   |
-| dat | !   | !   | !   | dat |
-| per | !   | !   | !   | per |
+| dat | !   | !   | !   | TBD |
+| per | !   | !   | !   | TBD |
 
 Relational operators
 
-| A\B | int  | dbl  | dat  | per  |
-|-----|------|------|------|------|
-| int | bool | bool | !    | !    |
-| dbl | bool | bool | !    | !    |
-| dat | !    | !    | bool | !    |
-| per | !    | !    | !    | bool |
+| A\B | int  | dbl  | dat  | per |
+|-----|------|------|------|-----|
+| int | bool | bool | !    | !   |
+| dbl | bool | bool | !    | !   |
+| dat | !    | !    | bool | !   |
+| per | !    | !    | !    | TBD |
 
-Note: there is no explicit bool type in DATAL. It only serves purpose in conditional statements and loops.
+Note: there is no bool type in DATAL. It only serves purpose in conditional statements and loops.
 
 ## 4. Implementation
 The functionality of the interpreter will be conducted by a series of modules forming a pipeline:
@@ -220,9 +211,9 @@ The functionality of the interpreter will be conducted by a series of modules fo
 4. `Parser` - It will perform construction of Abstract Syntax Tree
 
 Additionally, there will be a series of modules that help maintain clean structure of code
-1. `Token` - an enum, which holds information about token's value (if any)
-   information about
-2. `TokenValue` - TODO interface?
+1. `Token` - an enum, which holds information about token's value (if any) in form of `TokenValue`
+2. `TokenValue` - there will be several types of tokenValues, that inherit from `TokenValue`. There will be one for
+integers, doubles, dates, periods, and possibly others.
 3. `ASTNode` - A module representing a node in Abstract Syntax Tree, created token by token.
 
 In order for the interpreter to function correctly with incorrect input, error modules were created. They allow for
@@ -233,6 +224,8 @@ be passed to the `ErrorHandler`. These errors include (but are not limited to): 
 
 Seeing as there are multiple parameters for different modules, two config files are provided: one for lexer and one for
 parser.
+1. `lexer.config` includes: max length of identifier, max length of string literal
+2. `parser.config` includes: max number of parameters in a function
 
 Identifiers will be store in `IdentifierMap`, that are created for each code block. Once the code block stops executing, the map
 is discarded. At least one map will be created for each program, and will store global identifiers, i.e. functions and
@@ -260,16 +253,13 @@ Below there are listed different examples of code written in DATAL, both correct
 the language) and incorrect (that demonstrate edge cases and their handling).
 
 ### Primitive types
-DATAL provides two types of primitives integer and double-precision.
-Even though DATAL has no explicit bool type, boolean logic is present.
-String type does not exist, however string literal can be passed
-to print function with square brackets as delimiters. There are 8 boolean
-operators `and` - conjunction, `or` - alternative, `==` - equality,
-`!=` - inequality, `<` - less than, `>` - more than, `<=` - less or equal,
-`>=` - more or equal
+DATAL provides two types of primitives integer and double-precision. Even though DATAL has no explicit bool type,
+boolean logic is present. String type does not exist, however string literal can be passed to print function with square
+brackets as delimiters. There are 8 boolean operators `and` - conjunction, `or` - alternative, `==` - equality,
+`!=` - inequality, `<` - less than, `>` - more than, `<=` - less or equal, `>=` - more or equal
 ```
-int i = 10;
-dbl d = 10,2;
+i = 10;
+d = 10,2;
 i = i + d;              # i equals 20.2
 
 if (i == 20,2 or i != 3) {
@@ -278,39 +268,39 @@ if (i == 20,2 or i != 3) {
 ```
 
 ### Dates
-Datetime `dat` units are defined from largest to smallest. They need to have a positive year specified at the beginning.
-Following units are optional and will default to 0 if not specified. A number of members are
-available: `years`, `months`, `days`, `hours`, `minutes`, `seconds`.
+Datetime units are defined from largest to smallest. Each of them needs to be specified, when initialized. A number of
+members are available: `years`, `months`, `days`, `hours`, `minutes`, `seconds`.
 ```
-dat d1 = 2023y:3m:27d:19h:31':10";
+d1 = 2023y:3m:27d:19h:31':10";
 
-dat d2 = 2023y;         # January 1st, 2023 - 0:00:00
+d2 = 2023y;             # January 1st, 2023 - 0:00:00
 print(d2);              # >2023.01.01.00:00:00
 
 print(d1.year);         # >2023
 print(d1.month);        # >3
 print(d1.day);          # >27
 print(d1.hour);         # >19
-print(d1.minut);        # >31
+print(d1.minute);       # >31
 print(d1.second);       # >10
 ```
 
 Incorrect uses
 ```
-dat d3 = 2023y:10d;     # LEXICAL ERROR: (line 1, column 17) failed to construct a token
-dat d4 - 1234567y;      # LEXICAL ERROR: (line 2, column 16) failed to construct a token
-dat d5 1999y;           # SYNTAX ERROR: (line 3, column 8) unexpected token while building expression: datetime
-dat d6 = 2023y:100m:10d:0h:0':0";    # SEMANTIC ERROR: (line 4, column 16) month unit may not exceed 12
-dat d7 = 10.2;           # SYNTAX ERROR: (line 5, column 10) unexpected token while building assignment: double
+d3 = 2023y:10d;         # LEXICAL ERROR: (line 1, column 17) failed to construct a token
+d4 - 1234567y;          # LEXICAL ERROR: (line 2, column 16) failed to construct a token
+d5 1999y;               # SYNTAX ERROR: (line 3, column 8) unexpected token while building expression: datetime
+d6 = 2023y:100m:10d:0h:0':0";    # SEMANTIC ERROR: (line 4, column 16) month unit may not exceed 12
+d7 = 10.2;              # SYNTAX ERROR: (line 5, column 10) unexpected token while building assignment: double
 ```
 
-### Periods
-Period (per) type has similar format, but this time any of the time units may be missing, as long as at least one of
+### Durations
+Duration type has similar format, but this time any of the time units may be missing, as long as at least one of
 them is provided. However, they need to be provided in order from largest to smallest. A number of members are
-available: `days`, `hours`, `minutes`, `seconds`. NOTE: these members do not work the same as in the case of datetime.
+available: `years`, `months`, `days`, `hours`, `minutes`, `seconds`. NOTE: these members may mean different time spans,
+when created through subtraction of two datetimes and through providing literals.
 ```
-per p1 = 20d;           # 20 days
-per p2 = 230d 3h 10' 5";   # 230 days 3 hours 10 minutes 5 seconds
+p1 = 20d;               # 20 days
+p2 = 230d 3h 10' 5";    # 230 days 3 hours 10 minutes 5 seconds
 print(p2);              # >230:03:10:05
 
 print(p1.days);         # >230
@@ -320,26 +310,26 @@ print(p1.seconds);      # >19883405
 ```
 Incorrect uses
 ```
-per p3 = 4d 7" 3m;      # SYNTAX ERROR: (line 1, column 14) invalid token TODO what type?
+p3 = 4d 7" 3m;          # SYNTAX ERROR: (line 1, column 14) unexpected token while building durationLiteral: monthUnit
 ```
 
 ### Date arithmetics
 ```
-dat d1 = 2023Y 1M 1D;
-per p1 = 10D 1'; 
-dat d2 = d1 + p1;       # 1023 1M 11D 1';
+d1 = 2023Y 1M 1D;
+p1 = 10D 1'; 
+d2 = d1 + p1;           # 2023 1M 11D 1';
 ```
 
 Incorrect uses:
 ```
-per p1 = 10" 1D;        # SYNTAX ERROR: (line 1, column 15) invalid token TODO what type?
-per p2 = 10Y;           # SYNTAX ERROR: (line 1, column 12) invalid token TODO what type?
+p1 = 10Y:10M:3D:10h:20':30";
+# SYNTAX ERROR: (line 1, column 15) unexpected token while building durationLiteral: dateLiteral
 ```
 
 ### Conditions
 ```
-dat d1 = 2023Y:1M:1D:0h:0':0";
-dat d2 = 2024Y;
+d1 = 2023Y:1M:1D:0h:0':0";
+d2 = 2024Y;
 if (d1 < d2){
     if (d1 > 1999Y;){
         print(d2);      #> 2024.01.01.00:00:00
@@ -349,7 +339,7 @@ if (d1 < d2){
 
 Incorrect uses
 ```
-if (int d1 = 2023Y){    # SYNTAX ERROR: (line 1, column 5) unexpected token while building expression: int
+if (d1 = 2023Y){        # SYNTAX ERROR: (line 1, column 5) unexpected token while building expression: identifier
     # ...
 }
 ```
@@ -357,11 +347,11 @@ if (int d1 = 2023Y){    # SYNTAX ERROR: (line 1, column 5) unexpected token whil
 if () {}                # SYNTAX ERROR: (line 1, column 5) token missing
 ```
 ```
-if (1+2) {}             # SYNTAX ERROR: (line 1, column 8) unexpected token while building condition: int
+if (1+2) {}             # SYNTAX ERROR: (line 1, column 8) unexpected token while building condition: intLiteral
 ```
 ### Loops
 ```
-int i = 0;
+i = 0;
 while (i < 10 and 1 < 2){
     print(i);
     i = i + 1;
@@ -377,10 +367,10 @@ while (int i < 0){      # SYNTAX ERROR: unexpected token while building expressi
 
 ### Functions
 ```
-# Function may be of either primitive type or datetime/period type
-dat subtract_10_days(dat date) {
-    per ten_days = 10d;
-    dat new_date = date - ten_days;
+# Function may be of either primitive type or datetime/duration type
+subtract_10_days(date) {
+    ten_days = 10d;
+    new_date = date - ten_days;
     return new_date;
     return date;        # Anything after first return will be ignored
 }
@@ -389,94 +379,41 @@ Incorrect uses
 
 ```
 # There are no functions-within-functions in DATAL
-int fun1() {
-    dbl fun2(){}        # SYNTAX ERROR: (line 2, column 13) unexpected token while building function: function
+fun1() {
+    fun2(){}        # SYNTAX ERROR: (line 2, column 13) unexpected token while building function: function
 }
 ```
 ```
 # there are no first order functions in DATAL
-dbl fun3() {}
-int fun4() { 
+fun3() {}
+fun4() { 
     #this example will stop execution 
     return fun3;        # SEMANTIC ERROR: (line 3, column 15) function identifier returned
 }
 ```
 ```
-# hard limit for the number of parameters is set to 64 TODO should there be one?
-int many_args(int a1, int a2, int a3, ..., int a65){
-                        # SYNTAX ERROR: (line 1, column x) unexpected token while building parameters
-    return 1;           # if there would be no { then the program would not break
+fun5(){
+    return 1            # SYNTAX ERROR: (line 3, column 1) unexpected token while building returnStatement: "{"
 }
 ```
 ```
 # missing bracket
-int fun1(){
+fun1(){
     print([Unclosed]) 
                         # SYNTAX ERROR: (line 3, column 1) token missing
 ```
 ```
-int fun1()(){           # SYNTAX ERROR: (line 1, column 11) unexpected token while building function: "("
+fun1()(){           # SYNTAX ERROR: (line 1, column 11) unexpected token while building function: "("
 }
 ```
 ```
 fun1();                 # SEMANTIC ERROR: (line 1, column 1) unknown identifier
-int fun1(){}
+fun1(){}
 ```
 ### Miscellaneous 
 Correct users
 ```
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; int 1
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; a
 =
 3;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; 
 ```
-
-
-```
-var dat1 = 2023Y:10M:9D:20H:3':4";
-var dat2 = 2023Y:12M:9D:20H:3':4";
-
-var per1 = 2M;
-
-var per2 = dat2 - dat1; 
-
-print(per1.days);
-print(per2.days);
-
-
-----------
-var dat1 = 2023Y:10M:9D:20H:3':4";
-var dat2 = 2024Y:10M:9D:20H:3':4"; # rok przestępny
-
-var per1 = dat2 - dat 1;
-var per2 = 1Y
-
-# nieco ponad 2 lata
-per1 < per2; # true or false
-
-per1 = per1 + 1D;
-per1 < per2; # true or false
-```
-
-TODO
-* co będzie u mnie w praktyce oznaczało silne typowanie
-  * odp: będzie słabe
-* jak deskryptywne powinny być komunikaty błędu? "Missing semicolon"/"Token expected"/"Syntax error (line x, col y)
-  * odp: co ma być vs co jest podane (jaki token)
-* jak nazwać błędy z warstwy semantycznej
-  * odp: później
-* w ebnf, czy można od jednego znaku odjąć więcej niż jeden (char-escapeChar)
-  * odp: -
-* te daty są trudne do wyrażenia w ebnf. Co zrobić np. z dniami w miesiącu albo liczbą dni w roku?
-  * odp: 
-* czy jest ok, żeby period był tylko w d h ' "?
-  * odp: 
-* powinienem pozwolić na dowolną ilość parametrów?
-  * odp: 
-* Czy pozwolić na zmienne globalne
-  * odp: 
-* mogę nie mieć w takim razie osobnych typów tylko `var` i `def`?
-  * odp:
-* Period będzie miał dwie możliwe postaci (albo abstrakcyjne wartości jednostek czasu, albo konkretne między różnymi 
-  punktami) - zły design 
-  * odp:
-* Nie lepiej wprowadzić osobnego typu? I ten byłby już ograniczony
