@@ -89,11 +89,11 @@ stringLiteral   = strDelimL, {stringChar}, strDelimR;
 
 
 durationLiteral = yearUnit, [monthUnit], [dayUnit], [hourUnit], [minuteUnit], [secondUnit]
-                | [yearUnit], monthUnit, [dayUnit], [hourUnit], [minuteUnit], [secondUnit]
-                | [yearUnit], [monthUnit], dayUnit, [hourUnit], [minuteUnit], [secondUnit]
-                | [yearUnit], [monthUnit], [dayUnit], hourUnit, [minuteUnit], [secondUnit]
-                | [yearUnit], [monthUnit], [dayUnit], [hourUnit], minuteUnit, [secondUnit]
-                | [yearUnit], [monthUnit], [dayUnit], [hourUnit], [minuteUnit], secondUnit;
+                | monthUnit, [dayUnit], [hourUnit], [minuteUnit], [secondUnit]
+                | dayUnit, [hourUnit], [minuteUnit], [secondUnit]
+                | hourUnit, [minuteUnit], [secondUnit]
+                | minuteUnit, [secondUnit]
+                | secondUnit;
 
 literal         = intLiteral
                 | doubleLiteral
