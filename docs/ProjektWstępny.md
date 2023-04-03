@@ -12,7 +12,7 @@ Language provides
 * datetime type, which stores an array of independent unsigned integers that represent a date composed of different time
 units
 * period type, which stores an information about time difference between two points in time, or explicit difference
-specified by the user, and information about era (AC or BC; AC - by default)
+specified by the user, and information about era (`AC`/`y` or `BC`)
 * built-in members for datetime and period types that allow for extracting time information in different units from the
 variable
 * boolean logic, i.e. negation, conjunction and alternative
@@ -61,6 +61,7 @@ assignOp        \=
 memberOp        \.
 separOp         \,
 if              if
+else            else
 while           while
 parOpen         "("
 parClose        ")"
@@ -68,6 +69,7 @@ strDelimL       "["
 strDelimR       "]"
 blockOpen       "{"
 blockClose      "}"
+stmtEnd         ";"
 return          return
 escapeChar      \\[n|r|t|f|b|\\|]);
 compOp          [\>|\<|\<\=|\>\=|\=\=|\!\=]
@@ -103,35 +105,38 @@ literal         = intLiteral
 
 
 ident           = char - (specialSymbol | digit), {char-specialSymbol};
+identOrFuncCall = ident, [parOpen, [args], parClose];
 
 value           = literal
-                | ident
-                | funcCall; 
-memberExpr      = ident, {memberOp, ident};
+                | identOrFuncCall
+                | parOpen, expr, parClose; 
+
+memberExpr      = value, {memberOp, ident};
 negExpr         = [notOp], memberExpr;
 multExpr        = negExpr, {multOp, negExpr};
 addExpr         = multExpr, {addOp, multExpr};
-compExpr        = addExpr, {compOp, addExpr};
+compExpr        = addExpr, [compOp, addExpr];
 andExpr         = compExpr, {andOp, compExpr};
 orExpr          = andExpr, {orOp, andExpr};
 expr            = orExpr;
 assignment      = ident, assignOp, expr;
 
-condStmt        = if, parOpen, expr, parClose, blockOpen, {statement}, blockClose,
-                  ["else", blockOpen, {statement}, blockClose];
-loopStmt        = while, parOpen expr parClose, blockOpen, {statement}, blockClose;
+condStmt        = if, parOpen, expr, parClose, block, [else, block];
+loopStmt        = while, parOpen, expr, parClose, block;
 
-param           = expr, {separOp, expr};
-funcCall        = ident, parOpen, [param], parClose;
-returnStmt      = return, expr, ";";
+args            = expr, {separOp, expr};
+returnStmt      = return, [expr], stmtEnd;
 
-statement       = assignment, ";"
-                | funcCall, ";"
+statement       = assignment, stmtEnd
+                | expr, stmtEnd
                 | condStmt
                 | loopStmt
                 | returnStmt;
 
-function        = ident, parOpen, [param], parClose, blockOpen, {statement}, return, expr, blockClose
+block           = blockOpen, {statement}, blockClose;
+
+params          = ident, {separOp, ident};
+function        = ident, parOpen, [params], parClose, block;
 
 program         = {function};
 ```
@@ -179,7 +184,7 @@ Division
 Note: 
 One may notice that dat type doesn't support multiplication or division. It is to prevent confusion
 with how the user may interpret this type versus how it's actually implemented, while the benefit of implementing
-`*` or `/` for `dat` would be negligible.
+`*` or `/` for datetime would be negligible.
 
 Addition & Subtraction
 
@@ -259,10 +264,10 @@ brackets as delimiters. There are 8 boolean operators `and` - conjunction, `or` 
 `!=` - inequality, `<` - less than, `>` - more than, `<=` - less or equal, `>=` - more or equal
 ```
 i = 10;
-d = 10,2;
+d = 10.2;
 i = i + d;              # i equals 20.2
 
-if (i == 20,2 or i != 3) {
+if (i == 20.2 or i != 3) {
     print([Variable d equals: ], d, [!]); # >Variable d equals: 20.2!
 }
 ```
@@ -272,9 +277,7 @@ Datetime units are defined from largest to smallest. Each of them needs to be sp
 members are available: `years`, `months`, `days`, `hours`, `minutes`, `seconds`.
 ```
 d1 = 2023y:3m:27d:19h:31':10";
-
-d2 = 2023y;             # January 1st, 2023 - 0:00:00
-print(d2);              # >2023.01.01.00:00:00
+print(d1);              # >2023.03.27.19:31:10
 
 print(d1.year);         # >2023
 print(d1.month);        # >3
@@ -286,11 +289,11 @@ print(d1.second);       # >10
 
 Incorrect uses
 ```
-d3 = 2023y:10d;         # LEXICAL ERROR: (line 1, column 17) failed to construct a token
-d4 - 1234567y;          # LEXICAL ERROR: (line 2, column 16) failed to construct a token
-d5 1999y;               # SYNTAX ERROR: (line 3, column 8) unexpected token while building expression: datetime
-d6 = 2023y:100m:10d:0h:0':0";    # SEMANTIC ERROR: (line 4, column 16) month unit may not exceed 12
-d7 = 10.2;              # SYNTAX ERROR: (line 5, column 10) unexpected token while building assignment: double
+d2 = 2023y:10d;         # LEXICAL ERROR: (line 1, column 17) failed to construct a token: dateLiteral
+d3 = 1234567y:;         # LEXICAL ERROR: (line 2, column 16) failed to construct a token: dateLiteral
+d4 1999y;               # SYNTAX ERROR: (line 3, column 8) unexpected token while building expression: dateLiteral
+d5 = 2023y:100m:10d:0h:0':0";    # SEMANTIC ERROR: (line 4, column 16) month unit may not exceed 12
+d6 = 10.2;              # SYNTAX ERROR: (line 5, column 10) unexpected token while building assignment: double
 ```
 
 ### Durations
@@ -315,23 +318,24 @@ p3 = 4d 7" 3m;          # SYNTAX ERROR: (line 1, column 14) unexpected token whi
 
 ### Date arithmetics
 ```
-d1 = 2023Y 1M 1D;
+d1 = 2023Y:1M:1D:0H:0':0";
 p1 = 10D 1'; 
 d2 = d1 + p1;           # 2023 1M 11D 1';
+p2 = p1 / 2;            # 5d 30";
 ```
 
 Incorrect uses:
 ```
-p1 = 10Y:10M:3D:10h:20':30";
+p1 = 10Y 5Y:10M:3D:10h:20':30";
 # SYNTAX ERROR: (line 1, column 15) unexpected token while building durationLiteral: dateLiteral
 ```
 
 ### Conditions
 ```
 d1 = 2023Y:1M:1D:0h:0':0";
-d2 = 2024Y;
+d2 = 2024Y:1M:1D:0h:0':0";
 if (d1 < d2){
-    if (d1 > 1999Y;){
+    if (d1 > 1999Y){
         print(d2);      #> 2024.01.01.00:00:00
     }
 }
@@ -339,15 +343,15 @@ if (d1 < d2){
 
 Incorrect uses
 ```
-if (d1 = 2023Y){        # SYNTAX ERROR: (line 1, column 5) unexpected token while building expression: identifier
+if (d1 = 2023Y){        # SYNTAX ERROR: (line 1, column 5) unexpected token while building expression: assignment
     # ...
 }
 ```
 ```
-if () {}                # SYNTAX ERROR: (line 1, column 5) token missing
+if () {}                # SYNTAX ERROR: (line 1, column 5) expression missing
 ```
 ```
-if (1+2) {}             # SYNTAX ERROR: (line 1, column 8) unexpected token while building condition: intLiteral
+if (1+2) {}             # SYNTAX ERROR: (line 1, column 8) unexpected token while building condition: addExpr
 ```
 ### Loops
 ```
@@ -360,7 +364,7 @@ while (i < 10 and 1 < 2){
 
 Incorrect uses
 ```
-while (int i < 0){      # SYNTAX ERROR: unexpected token while building expression: int
+while (int i < 0){      # SYNTAX ERROR: (line 1, column 8) unexpected token while building expression: int
     # ...
 }
 ```
@@ -380,7 +384,7 @@ Incorrect uses
 ```
 # There are no functions-within-functions in DATAL
 fun1() {
-    fun2(){}        # SYNTAX ERROR: (line 2, column 13) unexpected token while building function: function
+    fun2(){}            # SYNTAX ERROR: (line 2, column 13) unexpected token while building function: function
 }
 ```
 ```
@@ -400,14 +404,14 @@ fun5(){
 # missing bracket
 fun1(){
     print([Unclosed]) 
-                        # SYNTAX ERROR: (line 3, column 1) token missing
+                        # SYNTAX ERROR: (line 3, column 1) token missing "{"
 ```
 ```
-fun1()(){           # SYNTAX ERROR: (line 1, column 11) unexpected token while building function: "("
+fun1()(){               # SYNTAX ERROR: (line 1, column 11) unexpected token while building function: "("
 }
 ```
 ```
-fun1();                 # SEMANTIC ERROR: (line 1, column 1) unknown identifier
+fun1();                 # SEMANTIC ERROR: (line 1, column 1) unknown identifier: fun1
 fun1(){}
 ```
 ### Miscellaneous 
