@@ -96,30 +96,31 @@ durationLiteral = yearUnit, [monthUnit], [dayUnit], [hourUnit], [minuteUnit], [s
                 | hourUnit, [minuteUnit], [secondUnit]
                 | minuteUnit, [secondUnit]
                 | secondUnit;
+                
+objectLiteral   = dateLiteral
+                | durationLiteral;
 
-literal         = intLiteral
+simpleLiteral   = intLiteral
                 | doubleLiteral
-                | dateLiteral
-                | durationLiteral
                 | stringLiteral;
 
 
 ident           = char - (specialSymbol | digit), {char-specialSymbol};
 identOrFuncCall = ident, [parOpen, [args], parClose];
 
-value           = literal
-                | identOrFuncCall
-                | parOpen, expr, parClose; 
-
-memberExpr      = value, {memberOp, ident};
-negExpr         = [notOp], memberExpr;
+simpleValue     = simpleLiteral
+                | parOpen, expr, parClose;                
+objectValue     = objectLiteral
+                | identOrFuncCall;
+ 
+memberExpr      = objectValue, {memberOp, ident}, [assignOp, expr];
+negExpr         = [notOp], (memberExpr | simpleValue);
 multExpr        = negExpr, {multOp, negExpr};
 addExpr         = multExpr, {addOp, multExpr};
 compExpr        = addExpr, [compOp, addExpr];
 andExpr         = compExpr, {andOp, compExpr};
 orExpr          = andExpr, {orOp, andExpr};
 expr            = orExpr;
-assignment      = ident, assignOp, expr;
 
 condStmt        = if, parOpen, expr, parClose, block, [else, block];
 loopStmt        = while, parOpen, expr, parClose, block;
@@ -127,8 +128,7 @@ loopStmt        = while, parOpen, expr, parClose, block;
 args            = expr, {separOp, expr};
 returnStmt      = return, [expr], stmtEnd;
 
-statement       = assignment, stmtEnd
-                | expr, stmtEnd
+statement       = expr, stmtEnd
                 | condStmt
                 | loopStmt
                 | returnStmt;
