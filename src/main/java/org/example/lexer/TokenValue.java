@@ -1,19 +1,14 @@
 package org.example.lexer;
 
-public class TokenValue {
+public class TokenValue<T> {
 
-    private final Object value;
-    TokenValue(int value){
-        this.value = value;
-    }
-    TokenValue(float value){
-        this.value = value;
-    }
-    TokenValue(String value){
+    public TokenValue(T value) {
         this.value = value;
     }
 
-    public Object getValue() {
+    private final T value;
+
+    public T getValue() {
         return this.value;
     }
 }
