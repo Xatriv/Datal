@@ -1,10 +1,11 @@
 package org.example.lexer;
 
+import java.io.IOException;
+
 public interface ILexer {
 
-    Token getToken(); //why?
-    void setToken(Token token); //why?
+    Token getToken();
 
-    Token Next();
+    Token next() throws IOException;
 
 }

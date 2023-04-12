@@ -1,6 +1,7 @@
 package org.example;
 
 import org.example.lexer.Lexer;
+import org.example.source.Source;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.*;
@@ -13,16 +14,10 @@ public class Main {
         } catch (IOException  e){
             System.out.println("Could not find input file.");
         }
-
-        System.out.println("Hello world!");
     }
 
     private static void runPipeline(String fileName) throws IOException {
-        BufferedReader br = initiateSource(fileName);
-        Lexer lexer = new Lexer(br);
-    }
-    private static BufferedReader initiateSource(String fileName) throws FileNotFoundException {
-        File file = new File(fileName);
-        return new BufferedReader(new FileReader(fileName));
+        Source source = new Source(fileName);
+        Lexer lexer = new Lexer(source);
     }
 }
