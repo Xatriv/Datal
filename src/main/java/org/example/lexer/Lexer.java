@@ -63,13 +63,29 @@ public class Lexer implements ILexer {
         this.currentToken = token;
     }
 
-    private boolean tryBuildNumber(){
-        //if isDigit
-        //check for overflow
-        //if found a comma, start adding to fraction part
-        // if comma found more than once, return false;
-        // this.currentToken= int or double
-         return true;
+    private boolean tryBuildNumber() throws IOException {
+        int wholePart = 0;
+        int fractionPart = 0;
+        int decimalDigits = 0;
+        while (Character.isDigit(character.charAt(0))) {
+            wholePart *= 10;
+            wholePart += Integer.parseInt(character);
+            character = source.nextCharacter();
+        }
+        if (Character.isWhitespace(character.charAt(0))){ //TODO not only whitespace
+            currentToken = Token.INTEGER; //TODO value
+            return true;
+        } else if (character.equals(".")) { //TODO maybe extract somewhere?
+            character = source.nextCharacter(); //TODO handle parsing errors (everything other than int.int)
+            while (Character.isDigit(character.charAt(0))){
+                fractionPart += Integer.parseInt(character);
+                decimalDigits += 1;
+            }
+            double result = wholePart + (double) fractionPart/decimalDigits;
+            currentToken = Token.DOUBLE;
+            return true;
+        } //TODO check for overflow
+         return false;
     }
 
     private boolean tryBuildIdentOrKeyword() {
