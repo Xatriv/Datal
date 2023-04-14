@@ -1,7 +1,7 @@
 package org.example;
 
-import org.example.lexer.Lexer;
-import org.example.lexer.Token;
+import org.example.lexer.CodeLexer;
+import org.example.lexer.SimpleToken;
 import org.example.source.Source;
 import org.jetbrains.annotations.NotNull;
 
@@ -19,9 +19,9 @@ public class Main {
 
     private static void runPipeline(String fileName) throws IOException {
         Source source = new Source(fileName);
-        Lexer lexer = new Lexer(source);
-        Token xd;
-        while ( (xd = lexer.next()) != Token.EOF) {
+        CodeLexer codeLexer = new CodeLexer(source);
+        SimpleToken xd;
+        while ( (xd = codeLexer.next()) != SimpleToken.EOF) {
             System.out.println(xd.name());
         }
     }
