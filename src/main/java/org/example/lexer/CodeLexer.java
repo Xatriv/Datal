@@ -1,6 +1,7 @@
 package org.example.lexer;
 
 import org.example.source.ISource;
+import org.example.token.TokenType;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -10,7 +11,7 @@ import java.util.Properties;
 public class CodeLexer implements Lexer {
 
     private String character; //maybe unnecessary
-    private SimpleToken currentToken;
+    private TokenType currentToken;
     private String newlineCharacter;
     private final int identifierMaxLength;
     private final int stringLiteralMaxLength;
@@ -54,36 +55,41 @@ public class CodeLexer implements Lexer {
     }
 
     @Override
-    public SimpleToken getToken() {
+    public TokenType getToken() {
         return null;
     }
 
-    private void setToken(SimpleToken token) {
+    private void setToken(TokenType token) {
         this.currentToken = token;
     }
 
     private boolean tryBuildNumber() throws IOException {
-        int wholePart = 0;
-        int fractionPart = 0;
+        if (!Character.isDigit(character.charAt(0))) return false;
+
+        int wholePart = character.charAt(0)-'0';
         int decimalDigits = 0;
         while (Character.isDigit(character.charAt(0))) {
-            wholePart *= 10;
-            wholePart += Integer.parseInt(character);
             character = source.nextCharacter();
+            int digit = character.charAt(0)-'0';
+            if ((Integer.MAX_VALUE - digit)/10 -wholePart > 0) {
+                wholePart = wholePart*10 + digit;
+            } else {
+                //report error
+                return false;
+            }
         }
-        if (Character.isWhitespace(character.charAt(0))) { //TODO not only whitespace
-            currentToken = SimpleToken.INTEGER; //TODO value
-            return true;
-        } else if (character.equals(".")) { //TODO maybe extract somewhere?
+        if (character.equals(".")) { //TODO maybe extract somewhere?
+            //TODO check for overflow
+            int fractionPart = 0;
             character = source.nextCharacter(); //TODO handle parsing errors (everything other than int.int)
             while (Character.isDigit(character.charAt(0))) {
                 fractionPart += Integer.parseInt(character);
                 decimalDigits += 1;
             }
             double result = wholePart + (double) fractionPart / decimalDigits;
-            currentToken = SimpleToken.DOUBLE;
+//            currentToken = SimpleToken.DOUBLE;// TODO
             return true;
-        } else {//TODO check for overflow
+        } else {
             return tryBuildDateOrPeriod(wholePart);
         }
     }
@@ -91,27 +97,25 @@ public class CodeLexer implements Lexer {
     private boolean tryBuildDateOrPeriod(int beginning) {
 
         if (character.equals("\"")) {
-            TokenValue<String> tv = new TokenValue<String>("sek");
-            currentToken = SimpleToken.MULTIPLY;
+//            currentToken = ;
             return true; //TODO finish
         }
         return false; //TODO finish
     }
 
-    private boolean tryBuildIdentOrKeyword() {
-        return true;
+    private boolean tryBuildIdentOrKeyword() throws IOException {
+        character = source.nextCharacter();
+        if (character.isBlank() ||  source.nextCharacter().matches("[+\\-*/.\\\\!:;'\"()\\[\\]{}<>=]")){
+            return false; // TODO return identifier
+        }
+            return true;
     }
 
     private boolean tryBuildString() {
         return true;
     }
 
-    @Override
-    public SimpleToken next() throws IOException {
-        int c;
-//        StringBuilder builder = new StringBuilder();
-
-//        String hmm = this.source.read();
+    private void verifyEOL() throws IOException{
         while (this.character.isBlank()) {
             if (newlineCharacter != null)
                 continue;
@@ -125,9 +129,12 @@ public class CodeLexer implements Lexer {
                 }
             }
         }
-//        if ( try ){
-//            return Token;
-//        }
+    }
+
+    @Override
+    public TokenType next() throws IOException {
+        int c;
+        verifyEOL();
         return null;
-}
+    }
 }

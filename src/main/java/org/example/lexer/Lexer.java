@@ -1,11 +1,13 @@
 package org.example.lexer;
 
+import org.example.token.TokenType;
+
 import java.io.IOException;
 
 public interface Lexer {
 
-    SimpleToken getToken();
+    TokenType getToken();
 
-    SimpleToken next() throws IOException;
+    TokenType next() throws IOException;
 
 }

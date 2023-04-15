@@ -1,10 +1,14 @@
-package org.example.lexer;
+package org.example.token;
 
-public enum SimpleToken implements Token {
+
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.Setter;
+
+public enum TokenType {
     WHILE("WHILE"),
     IF("IF"),
     ELSE("ELSE"),
-    IDENTIFIER,
 
     PARENTHESIS_L("("),
     PARENTHESIS_R(")"),
@@ -20,10 +24,12 @@ public enum SimpleToken implements Token {
     BLOCK_DELIMITER_R("}"),
     RETURN("return"),
 
-    DOUBLE(new TokenValue<Double>(0.0)),
-    INTEGER(new TokenValue<Integer>(0)),
-    DATETIME(new TokenValue<String>("")), //TODO replace with DateTime type
-    PERIOD(new TokenValue<String>("")), //TODO replace with DateTime type
+    INT,
+    DOUBLE,
+    STRING,
+    DATE,
+    PERIOD,
+
 
     PLUS("+"),
     MINUS("-"),
@@ -34,15 +40,13 @@ public enum SimpleToken implements Token {
     STRING_LITERAL_DELIMITER_R("]"),
 
     // Multiple conventions. First occurrence determines newline char sequence
-    EOL,
+    EOL, // TODO check if keyword can be null
     EOF;
 
-    SimpleToken() {}
-    SimpleToken(String keyword) {
+    TokenType() {}
+    TokenType(String keyword) {
         this.keyword = keyword;
     }
-    SimpleToken(TokenValue<?> value) { this.value = value; }
+    @Getter @Setter(AccessLevel.PRIVATE)
     private String keyword;
-    private TokenValue<?> value;
-
 }

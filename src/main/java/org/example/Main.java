@@ -1,7 +1,7 @@
 package org.example;
 
 import org.example.lexer.CodeLexer;
-import org.example.lexer.SimpleToken;
+import org.example.token.TokenType;
 import org.example.source.Source;
 import org.jetbrains.annotations.NotNull;
 
@@ -20,8 +20,8 @@ public class Main {
     private static void runPipeline(String fileName) throws IOException {
         Source source = new Source(fileName);
         CodeLexer codeLexer = new CodeLexer(source);
-        SimpleToken xd;
-        while ( (xd = codeLexer.next()) != SimpleToken.EOF) {
+        TokenType xd;
+        while ( (xd = codeLexer.next()) != TokenType.EOF) {
             System.out.println(xd.name());
         }
     }
