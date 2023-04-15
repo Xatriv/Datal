@@ -1,17 +1,17 @@
 package org.example.lexer;
 
-import org.example.token.TokenType;
+import org.example.token.Token;
 
 import java.io.IOException;
 
 public class CommentLexer implements Lexer{
     @Override
-    public TokenType getToken() {
+    public Token getToken() {
         return null;
     }
 
     @Override
-    public TokenType next() throws IOException {
+    public Token next() throws IOException {
         return null;
     }
 }

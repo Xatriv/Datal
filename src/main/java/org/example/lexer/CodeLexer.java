@@ -1,6 +1,8 @@
 package org.example.lexer;
 
 import org.example.source.ISource;
+import org.example.token.SimpleToken;
+import org.example.token.Token;
 import org.example.token.TokenType;
 
 import java.io.FileInputStream;
@@ -11,7 +13,7 @@ import java.util.Properties;
 public class CodeLexer implements Lexer {
 
     private String character; //maybe unnecessary
-    private TokenType currentToken;
+    private Token currentToken;
     private String newlineCharacter;
     private final int identifierMaxLength;
     private final int stringLiteralMaxLength;
@@ -55,12 +57,32 @@ public class CodeLexer implements Lexer {
     }
 
     @Override
-    public TokenType getToken() {
+    public Token getToken() {
         return null;
     }
 
-    private void setToken(TokenType token) {
+    private void setToken(Token token) {
         this.currentToken = token;
+    }
+
+    private boolean tryBuildOperator() throws IOException {
+        if (character.equals("+")){
+            currentToken = new SimpleToken(TokenType.PLUS);
+            return true;
+        }
+        if (character.equals("-")){
+            currentToken = new SimpleToken(TokenType.MINUS);
+            return true;
+        }
+        if (character.equals("*")){
+            currentToken = new SimpleToken(TokenType.MULTIPLY);
+            return true;
+        }
+        if (character.equals("/")){
+            currentToken = new SimpleToken(TokenType.DIVIDE);
+            return true;
+        }
+        return false;
     }
 
     private boolean tryBuildNumber() throws IOException {
@@ -132,9 +154,11 @@ public class CodeLexer implements Lexer {
     }
 
     @Override
-    public TokenType next() throws IOException {
-        int c;
+    public Token next() throws IOException {
         verifyEOL();
+        if (tryBuildOperator()){
+            return currentToken;
+        }
         return null;
     }
 }

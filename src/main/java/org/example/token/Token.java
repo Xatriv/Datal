@@ -1,3 +1,5 @@
 package org.example.token;
 
-public interface Token {}
+public interface Token {
+    TokenType getType();
+}

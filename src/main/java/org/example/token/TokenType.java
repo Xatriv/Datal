@@ -30,6 +30,8 @@ public enum TokenType {
     DATE,
     PERIOD,
 
+    IDENTIFIER,
+
 
     PLUS("+"),
     MINUS("-"),
