@@ -17,6 +17,6 @@ public class Source implements ISource{
         if((c = this.bufferedReader.read()) == EOF){
             return ETX;
         }
-            return String.valueOf(c);
+        return new String(Character.toChars(c));
     }
 }

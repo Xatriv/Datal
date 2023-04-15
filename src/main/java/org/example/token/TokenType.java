@@ -37,13 +37,15 @@ public enum TokenType {
     MINUS("-"),
     MULTIPLY("*"),
     DIVIDE("/"),
+    MEMBER("."),
+    SEPARATOR("."),
 
-    STRING_LITERAL_DELIMITER_L("["),
-    STRING_LITERAL_DELIMITER_R("]"),
+    STRING_DELIMITER_L("["),
+    STRING_DELIMITER_R("]"),
 
     // Multiple conventions. First occurrence determines newline char sequence
     EOL, // TODO check if keyword can be null
-    EOF;
+    EOF("\0");
 
     TokenType() {}
     TokenType(String keyword) {

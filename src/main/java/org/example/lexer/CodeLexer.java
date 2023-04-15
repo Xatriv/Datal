@@ -8,6 +8,8 @@ import org.example.token.TokenType;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Properties;
 
 public class CodeLexer implements Lexer {
@@ -22,6 +24,7 @@ public class CodeLexer implements Lexer {
 
 
     public CodeLexer(ISource source) throws IOException {
+        character = source.nextCharacter();
         this.source = source;
         Properties props = new Properties();
         int identifierMaxLengthProp = -1;
@@ -65,22 +68,18 @@ public class CodeLexer implements Lexer {
         this.currentToken = token;
     }
 
-    private boolean tryBuildOperator() throws IOException {
-        if (character.equals("+")){
-            currentToken = new SimpleToken(TokenType.PLUS);
-            return true;
-        }
-        if (character.equals("-")){
-            currentToken = new SimpleToken(TokenType.MINUS);
-            return true;
-        }
-        if (character.equals("*")){
-            currentToken = new SimpleToken(TokenType.MULTIPLY);
-            return true;
-        }
-        if (character.equals("/")){
-            currentToken = new SimpleToken(TokenType.DIVIDE);
-            return true;
+    private boolean tryBuildOperator() {
+        List<TokenType> singleCharTokenTypes = Arrays.asList(
+                TokenType.PLUS, TokenType.MINUS, TokenType.DIVIDE, TokenType.MULTIPLY,
+                TokenType.MEMBER, TokenType.SEPARATOR, TokenType.SEMICOLON,
+                TokenType.BLOCK_DELIMITER_L, TokenType.BLOCK_DELIMITER_R,
+                TokenType.PARENTHESIS_L, TokenType.PARENTHESIS_R,
+                TokenType.STRING_DELIMITER_L, TokenType.STRING_DELIMITER_R);
+        for (TokenType type : singleCharTokenTypes) {
+            if (character.equals(type.getKeyword())) {
+                currentToken = new SimpleToken(type);
+                return true;
+            }
         }
         return false;
     }
@@ -88,13 +87,13 @@ public class CodeLexer implements Lexer {
     private boolean tryBuildNumber() throws IOException {
         if (!Character.isDigit(character.charAt(0))) return false;
 
-        int wholePart = character.charAt(0)-'0';
+        int wholePart = character.charAt(0) - '0';
         int decimalDigits = 0;
         while (Character.isDigit(character.charAt(0))) {
             character = source.nextCharacter();
-            int digit = character.charAt(0)-'0';
-            if ((Integer.MAX_VALUE - digit)/10 -wholePart > 0) {
-                wholePart = wholePart*10 + digit;
+            int digit = character.charAt(0) - '0';
+            if ((Integer.MAX_VALUE - digit) / 10 - wholePart > 0) {
+                wholePart = wholePart * 10 + digit;
             } else {
                 //report error
                 return false;
@@ -127,26 +126,26 @@ public class CodeLexer implements Lexer {
 
     private boolean tryBuildIdentOrKeyword() throws IOException {
         character = source.nextCharacter();
-        if (character.isBlank() ||  source.nextCharacter().matches("[+\\-*/.\\\\!:;'\"()\\[\\]{}<>=]")){
+        if (character.isBlank() || source.nextCharacter().matches("[+\\-*/.\\\\!:;'\"()\\[\\]{}<>=]")) {
             return false; // TODO return identifier
         }
-            return true;
+        return true;
     }
 
     private boolean tryBuildString() {
         return true;
     }
 
-    private void verifyEOL() throws IOException{
-        while (this.character.isBlank()) {
+    private void verifyEOL() throws IOException {
+        while ((character = source.nextCharacter()).isBlank()) {
             if (newlineCharacter != null)
                 continue;
             if (character.equals("\n")) {
                 character = source.nextCharacter();
                 newlineCharacter = character.equals("\r") ? "\n\r" : "\n";
-            } else if (character.equals("\r")){
+            } else if (character.equals("\r")) {
                 character = source.nextCharacter();
-                if (character.equals("\n")){
+                if (character.equals("\n")) {
                     newlineCharacter = "\r\n";
                 }
             }
@@ -156,9 +155,13 @@ public class CodeLexer implements Lexer {
     @Override
     public Token next() throws IOException {
         verifyEOL();
-        if (tryBuildOperator()){
+        if (character.equals(TokenType.EOF.getKeyword())) {
+            return new SimpleToken(TokenType.EOF);
+        }
+        System.out.println(character);
+        if (tryBuildOperator()) {
             return currentToken;
         }
-        return null;
+        return new SimpleToken(TokenType.PLUS);
     }
 }
