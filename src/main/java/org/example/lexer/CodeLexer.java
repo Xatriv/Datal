@@ -1,6 +1,7 @@
 package org.example.lexer;
 
 import org.example.source.ISource;
+import org.example.token.DoubleToken;
 import org.example.token.SimpleToken;
 import org.example.token.Token;
 import org.example.token.TokenType;
@@ -24,7 +25,6 @@ public class CodeLexer implements Lexer {
 
 
     public CodeLexer(ISource source) throws IOException {
-        character = source.nextCharacter();
         this.source = source;
         Properties props = new Properties();
         int identifierMaxLengthProp = -1;
@@ -108,7 +108,7 @@ public class CodeLexer implements Lexer {
                 decimalDigits += 1;
             }
             double result = wholePart + (double) fractionPart / decimalDigits;
-//            currentToken = SimpleToken.DOUBLE;// TODO
+            currentToken = new DoubleToken(result);
             return true;
         } else {
             return tryBuildDateOrPeriod(wholePart);
