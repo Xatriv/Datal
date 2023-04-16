@@ -1,3 +1,5 @@
-int +-*/ main() {😋
+int +-*/ main() {😋葛葛葛葛葛葛葛葛👾
+    [].=<=<=<>>=>!
+    and or not if else while whilewhile while
     return 0;
 }

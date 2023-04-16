@@ -6,23 +6,36 @@ import lombok.Getter;
 import lombok.Setter;
 
 public enum TokenType {
-    WHILE("WHILE"),
-    IF("IF"),
-    ELSE("ELSE"),
+    WHILE("while"),
+    IF("if"),
+    ELSE("else"),
+    AND("and"),
+    OR("or"),
+    NOT("not"),
+    RETURN("return"),
 
     PARENTHESIS_L("("),
     PARENTHESIS_R(")"),
+    STRING_DELIMITER_L("["),
+    STRING_DELIMITER_R("]"),
+    BLOCK_DELIMITER_L("{"),
+    BLOCK_DELIMITER_R("}"),
 
+    ASSIGN("="),
     EQUALS("=="),
-    NOT_EQUAL("=="),
+    NOT_EQUAL("!="),
     LESS_THAN("<"),
+    MORE_THAN(">"),
     LESS_OR_EQUAL_THAN("<="),
     MORE_OR_EQUAL_THAN(">="),
 
+    PLUS("+"),
+    MINUS("-"),
+    MULTIPLY("*"),
+    DIVIDE("/"),
+    MEMBER("."),
+    SEPARATOR(","),
     SEMICOLON(";"),
-    BLOCK_DELIMITER_L("{"),
-    BLOCK_DELIMITER_R("}"),
-    RETURN("return"),
 
     INT,
     DOUBLE,
@@ -31,17 +44,6 @@ public enum TokenType {
     PERIOD,
 
     IDENTIFIER,
-
-
-    PLUS("+"),
-    MINUS("-"),
-    MULTIPLY("*"),
-    DIVIDE("/"),
-    MEMBER("."),
-    SEPARATOR("."),
-
-    STRING_DELIMITER_L("["),
-    STRING_DELIMITER_R("]"),
 
     // Multiple conventions. First occurrence determines newline char sequence
     EOL, // TODO check if keyword can be null
