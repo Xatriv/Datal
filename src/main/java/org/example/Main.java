@@ -1,9 +1,7 @@
 package org.example;
 
 import org.example.lexer.CodeLexer;
-import org.example.token.StringToken;
-import org.example.token.Token;
-import org.example.token.TokenType;
+import org.example.token.*;
 import org.example.source.Source;
 import org.jetbrains.annotations.NotNull;
 
@@ -27,6 +25,12 @@ public class Main {
             System.out.println(xd.getType().name());
             if (xd.getType() == TokenType.STRING){
                 StringToken xd1 = (StringToken) xd;
+                System.out.println(xd1.getValue());
+            } else if (xd.getType() == TokenType.DOUBLE){
+                DoubleToken xd1 = (DoubleToken) xd;
+                System.out.println(xd1.getValue());
+            } else if (xd.getType() == TokenType.INT){
+                IntToken xd1 = (IntToken) xd;
                 System.out.println(xd1.getValue());
             }
         }

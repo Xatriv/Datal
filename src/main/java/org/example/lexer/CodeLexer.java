@@ -9,6 +9,7 @@ import java.io.InputStream;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
+import java.lang.Math;
 
 public class CodeLexer implements Lexer {
 
@@ -123,34 +124,43 @@ public class CodeLexer implements Lexer {
     }
 
     private boolean tryBuildNumber() throws IOException {
-        if (!Character.isDigit(character.charAt(0))) return false;
+        if (!charIsDigit(character)) return false;
 
         int wholePart = character.charAt(0) - '0';
-        int decimalDigits = 0;
-        while (Character.isDigit(character.charAt(0))) {
-            character = source.nextCharacter();
+        character = source.nextCharacter();
+        while (charIsDigit(character)) {
             int digit = character.charAt(0) - '0';
-            if ((Integer.MAX_VALUE - digit) / 10 - wholePart > 0) {
+            if ((Integer.MAX_VALUE - digit) / 10 - wholePart < 0) {
                 wholePart = wholePart * 10 + digit;
+                character = source.nextCharacter();
             } else {
-                //report error
+                //TODO report lexer error - overflow
                 return false;
             }
         }
         if (character.equals(".")) { //TODO maybe extract somewhere?
             //TODO check for overflow
             int fractionPart = 0;
+            int decimalDigits = 0;
             character = source.nextCharacter(); //TODO handle parsing errors (everything other than int.int)
-            while (Character.isDigit(character.charAt(0))) {
-                fractionPart += Integer.parseInt(character);
-                decimalDigits += 1;
+            while (charIsDigit(character)) {
+                fractionPart = fractionPart * 10 + character.charAt(0) - '0';
+                decimalDigits++;
+                character = source.nextCharacter();
             }
-            double result = wholePart + (double) fractionPart / decimalDigits;
+            double result = wholePart + (double) fractionPart / Math.pow(10, decimalDigits);
             currentToken = new DoubleToken(result);
             return true;
-        } else {
-            return tryBuildDateOrPeriod(wholePart);
         }
+        // TODO return tryBuildDateOrPeriod(wholePart);
+        else {
+            currentToken = new IntToken(wholePart);
+            return true;
+        }
+    }
+
+    private boolean charIsDigit(String ch) {
+        return ch.charAt(0) >= '0' && ch.charAt(0) <= '9';
     }
 
     private boolean tryBuildDateOrPeriod(int beginning) {
@@ -170,7 +180,8 @@ public class CodeLexer implements Lexer {
         character = source.nextCharacter();
         List<TokenType> keywordsTokenTypes = Arrays.asList(
                 TokenType.AND, TokenType.OR, TokenType.NOT,
-                TokenType.IF, TokenType.ELSE, TokenType.WHILE);
+                TokenType.IF, TokenType.ELSE, TokenType.WHILE,
+                TokenType.RETURN);
         while (!isEndOfKeywordOrIdent(character)) {
             sB.append(character);
             character = source.nextCharacter();
@@ -260,7 +271,7 @@ public class CodeLexer implements Lexer {
         }
         if (tryBuildSingleCharToken()
                 || tryBuildRelationToken()
-//            || tryBuildNumber()
+                || tryBuildNumber()
                 || tryBuildIdentOrKeyword()
 //            || tryBuildComment
                 || tryBuildString()
