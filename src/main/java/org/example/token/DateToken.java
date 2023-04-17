@@ -9,8 +9,8 @@ public class DateToken implements Token{
     @Getter @Setter(AccessLevel.PRIVATE)
     private Date value;
     @Getter
-    private final TokenType type = TokenType.PERIOD;
-    DateToken(Date value){
+    private final TokenType type = TokenType.DATE;
+    public DateToken(Date value){
         this.value=value;
     }
 }

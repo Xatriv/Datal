@@ -10,7 +10,7 @@ public class PeriodToken implements Token{
     private Period value;
     @Getter
     private final TokenType type = TokenType.PERIOD;
-    PeriodToken(Period value){
+    public PeriodToken(Period value){
         this.value=value;
     }
 }

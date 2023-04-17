@@ -10,6 +10,7 @@ import lombok.experimental.Accessors;
 @AllArgsConstructor
 @Accessors(chain = true, fluent = true)
 public class Date {
+    private boolean ac;
     private int year;
     private int month;
     private int day;

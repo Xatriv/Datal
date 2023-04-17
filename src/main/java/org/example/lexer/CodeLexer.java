@@ -2,6 +2,8 @@ package org.example.lexer;
 
 import org.example.source.ISource;
 import org.example.token.*;
+import org.example.types.Date;
+import org.example.types.Period;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -127,24 +129,30 @@ public class CodeLexer implements Lexer {
         if (!charIsDigit(character)) return false;
 
         int wholePart = character.charAt(0) - '0';
-        character = source.nextCharacter();
-        while (charIsDigit(character)) {
+        while (charIsDigit(character = source.nextCharacter())) {
             int digit = character.charAt(0) - '0';
             if ((Integer.MAX_VALUE - digit) / 10 - wholePart < 0) {
-                wholePart = wholePart * 10 + digit;
-                character = source.nextCharacter();
-            } else {
                 //TODO report lexer error - overflow
                 return false;
             }
+            wholePart = wholePart * 10 + digit;
         }
-        if (character.equals(".")) { //TODO maybe extract somewhere?
-            //TODO check for overflow
+        if (character.equals(".")) {
             int fractionPart = 0;
             int decimalDigits = 0;
-            character = source.nextCharacter(); //TODO handle parsing errors (everything other than int.int)
+            character = source.nextCharacter();
+            if (!charIsDigit(character)) {
+                //TODO report lexer error - could not build double
+                return false;
+            }
             while (charIsDigit(character)) {
-                fractionPart = fractionPart * 10 + character.charAt(0) - '0';
+                int digit = character.charAt(0) - '0';
+                if ((Integer.MAX_VALUE - digit) / 10 - wholePart < 0) {
+                    // TODO report lexer error - overflow
+                    return false;
+                }
+
+                fractionPart = fractionPart * 10 + digit;
                 decimalDigits++;
                 character = source.nextCharacter();
             }
@@ -152,24 +160,102 @@ public class CodeLexer implements Lexer {
             currentToken = new DoubleToken(result);
             return true;
         }
-        // TODO return tryBuildDateOrPeriod(wholePart);
-        else {
-            currentToken = new IntToken(wholePart);
+        if (character.matches("[yYAB]")) {
+            boolean isEraAC = character.matches("[yYA]");
+            if (character.matches("[AB]") && !(character = source.nextCharacter()).equals("C")) {
+                // report lexer error - could not build date (unrecognized era; must be either y, Y, AC or BC)
+                return false;
+            }
+            if (!(character = source.nextCharacter()).equals(":")) {
+                currentToken = new PeriodToken(new Period(wholePart, 0, 0, 0, 0, 0));
+                return true;
+            }
+            character = source.nextCharacter();
+
+            int monthValue;
+            if ((monthValue = getDateNumber("month")) < 0) return false;
+            if (!verifyTimeUnitSymbol("[mM]")) return false;
+
+            int dayValue;
+            if ((dayValue = getDateNumber("day")) < 0) return false;
+            if (!verifyTimeUnitSymbol("[dD]")) return false;
+
+            int hourValue;
+            if ((hourValue = getDateNumber("hour")) < 0) return false;
+            if (!verifyTimeUnitSymbol("[hH]")) return false;
+
+            int minuteValue;
+            if ((minuteValue = getDateNumber("minute")) < 0) return false;
+            if (!verifyTimeUnitSymbol("'")) return false;
+
+
+            int secondValue;
+            if ((secondValue = getDateNumber("second")) < 0) return false;
+            if (!character.matches("\"")){
+                // TODO report lexer error (because verifyTimeUnitSymbol is not used anymore)
+                return false;
+            }
+            character = source.nextCharacter();
+            currentToken = new DateToken(new Date(isEraAC, wholePart, monthValue,
+                    dayValue, hourValue, minuteValue, secondValue));
             return true;
         }
+        if (character.matches("[mM]")) {
+            currentToken = new PeriodToken(new Period(0, wholePart, 0, 0, 0, 0));
+            return true;
+        }
+        if (character.matches("[dD]")) {
+            currentToken = new PeriodToken(new Period(0, 0, wholePart, 0, 0, 0));
+            return true;
+        }
+        if (character.matches("[hH]")) {
+            currentToken = new PeriodToken(new Period(0, 0, 0, wholePart, 0, 0));
+            return true;
+        }
+        if (character.equals("'")) {
+            currentToken = new PeriodToken(new Period(0, 0, 0, 0, wholePart, 0));
+            return true;
+        }
+        if (character.equals("\"")) {
+            currentToken = new PeriodToken(new Period(0, 0, 0, 0, 0, wholePart));
+            return true;
+        }
+        currentToken = new IntToken(wholePart);
+        return true;
+    }
+
+    private int getDateNumber(String unit) throws IOException {
+        if (!charIsDigit(character)) {
+            //report lexer error - could not build date - empty %%unit%% value
+            return -1;
+        }
+        int number = character.charAt(0) - '0';
+        while (charIsDigit(character = source.nextCharacter())) {
+            int digit = character.charAt(0) - '0';
+            if ((Integer.MAX_VALUE - digit) / 10 - number < 0) {
+                //TODO report lexer error - overflow
+                return -1;
+            }
+            number = number * 10 + digit;
+        }
+        return number;
+    }
+
+    private boolean verifyTimeUnitSymbol(String regex) throws IOException {
+        if (!character.matches(regex)) {
+            //TODO report lexer error - unknown time unit
+            return false;
+        }
+        if (!(character = source.nextCharacter()).equals(":")) {
+            //TODO report lexer error - missing separator
+            return false;
+        }
+        character = source.nextCharacter();
+        return true;
     }
 
     private boolean charIsDigit(String ch) {
         return ch.charAt(0) >= '0' && ch.charAt(0) <= '9';
-    }
-
-    private boolean tryBuildDateOrPeriod(int beginning) {
-
-        if (character.equals("\"")) {
-//            currentToken = ;
-            return true; //TODO finish
-        }
-        return false; //TODO finish
     }
 
     private boolean tryBuildIdentOrKeyword() throws IOException {
@@ -183,6 +269,10 @@ public class CodeLexer implements Lexer {
                 TokenType.IF, TokenType.ELSE, TokenType.WHILE,
                 TokenType.RETURN);
         while (!isEndOfKeywordOrIdent(character)) {
+            if (identifierMaxLength != -1 && sB.length() > identifierMaxLength) {
+                // TODO lexer error identifier too long
+                return false;
+            }
             sB.append(character);
             character = source.nextCharacter();
         }
@@ -197,7 +287,6 @@ public class CodeLexer implements Lexer {
     }
 
     private boolean isEndOfKeywordOrIdent(String ch) {
-        //TODO include limit from config
         return ch.isBlank() || ch.matches("[+\\-*/.\\\\!:;'\"()\\[\\]{}<>=#]");
     }
 
@@ -206,7 +295,9 @@ public class CodeLexer implements Lexer {
         StringBuilder sB = new StringBuilder();
         character = source.nextCharacter();
         while (!character.equals("]")) {
-            if (false /* TODO out of config range*/) return false;
+            if (stringLiteralMaxLength != -1 && sB.length() > stringLiteralMaxLength) {
+                return false;
+            }
             if (character.equals("\\")) {
                 character = source.nextCharacter();
                 switch (character) {

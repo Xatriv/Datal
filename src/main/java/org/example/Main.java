@@ -32,6 +32,9 @@ public class Main {
             } else if (xd.getType() == TokenType.INT){
                 IntToken xd1 = (IntToken) xd;
                 System.out.println(xd1.getValue());
+            } else if (xd.getType() == TokenType.IDENTIFIER){
+                IdentifierToken xd1 = (IdentifierToken) xd;
+                System.out.println(xd1.getName());
             }
         }
     }
