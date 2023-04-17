@@ -16,8 +16,6 @@ public enum TokenType {
 
     PARENTHESIS_L("("),
     PARENTHESIS_R(")"),
-    STRING_DELIMITER_L("["),
-    STRING_DELIMITER_R("]"),
     BLOCK_DELIMITER_L("{"),
     BLOCK_DELIMITER_R("}"),
 

@@ -1,6 +1,7 @@
 package org.example;
 
 import org.example.lexer.CodeLexer;
+import org.example.token.StringToken;
 import org.example.token.Token;
 import org.example.token.TokenType;
 import org.example.source.Source;
@@ -24,6 +25,10 @@ public class Main {
         Token xd;
         while ((xd = codeLexer.next()).getType() != TokenType.EOF) {
             System.out.println(xd.getType().name());
+            if (xd.getType() == TokenType.STRING){
+                StringToken xd1 = (StringToken) xd;
+                System.out.println(xd1.getValue());
+            }
         }
     }
 }

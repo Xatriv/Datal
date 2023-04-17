@@ -1,5 +1,5 @@
 int +-*/ main() {😋葛葛葛葛葛葛葛葛👾
-    [].=<=<=<>>=>!
+    [xdddd\nxddd].=<=<=<>>=>!
     and or not if else while whilewhile while
     return 0;
 }

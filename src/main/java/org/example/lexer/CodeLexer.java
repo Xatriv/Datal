@@ -71,8 +71,7 @@ public class CodeLexer implements Lexer {
                 TokenType.PLUS, TokenType.MINUS, TokenType.DIVIDE, TokenType.MULTIPLY,
                 TokenType.MEMBER, TokenType.SEPARATOR, TokenType.SEMICOLON,
                 TokenType.BLOCK_DELIMITER_L, TokenType.BLOCK_DELIMITER_R,
-                TokenType.PARENTHESIS_L, TokenType.PARENTHESIS_R,
-                TokenType.STRING_DELIMITER_L, TokenType.STRING_DELIMITER_R);
+                TokenType.PARENTHESIS_L, TokenType.PARENTHESIS_R);
         for (TokenType type : singleCharTokenTypes) {
             if (character.equals(type.getKeyword())) {
                 character = source.nextCharacter();
@@ -82,9 +81,10 @@ public class CodeLexer implements Lexer {
         }
         return false;
     }
+
     private boolean tryBuildRelationToken() throws IOException {
-        if (character.equals("=")){
-            if ((character = source.nextCharacter()).equals("=")){
+        if (character.equals("=")) {
+            if ((character = source.nextCharacter()).equals("=")) {
                 currentToken = new SimpleToken(TokenType.EQUALS);
                 character = source.nextCharacter();
                 return true;
@@ -92,8 +92,8 @@ public class CodeLexer implements Lexer {
             currentToken = new SimpleToken(TokenType.ASSIGN);
             return true;
         }
-        if (character.equals("!")){
-            if ((character = source.nextCharacter()).equals("=")){
+        if (character.equals("!")) {
+            if ((character = source.nextCharacter()).equals("=")) {
                 currentToken = new SimpleToken(TokenType.NOT_EQUAL);
                 character = source.nextCharacter();
                 return true;
@@ -101,8 +101,8 @@ public class CodeLexer implements Lexer {
             // TODO lexer error
             return false;
         }
-        if (character.equals("<")){
-            if ((character = source.nextCharacter()).equals("=")){
+        if (character.equals("<")) {
+            if ((character = source.nextCharacter()).equals("=")) {
                 currentToken = new SimpleToken(TokenType.LESS_OR_EQUAL_THAN);
                 character = source.nextCharacter();
                 return true;
@@ -110,8 +110,8 @@ public class CodeLexer implements Lexer {
             currentToken = new SimpleToken(TokenType.LESS_THAN);
             return true;
         }
-        if (character.equals(">")){
-            if ((character = source.nextCharacter()).equals("=")){
+        if (character.equals(">")) {
+            if ((character = source.nextCharacter()).equals("=")) {
                 currentToken = new SimpleToken(TokenType.MORE_OR_EQUAL_THAN);
                 character = source.nextCharacter();
                 return true;
@@ -163,7 +163,7 @@ public class CodeLexer implements Lexer {
     }
 
     private boolean tryBuildIdentOrKeyword() throws IOException {
-        if (isEndOfKeywordOrIdent(character)){
+        if (isEndOfKeywordOrIdent(character)) {
             return false;
         }
         StringBuilder sB = new StringBuilder(character);
@@ -171,12 +171,12 @@ public class CodeLexer implements Lexer {
         List<TokenType> keywordsTokenTypes = Arrays.asList(
                 TokenType.AND, TokenType.OR, TokenType.NOT,
                 TokenType.IF, TokenType.ELSE, TokenType.WHILE);
-        while (!isEndOfKeywordOrIdent(character)){
+        while (!isEndOfKeywordOrIdent(character)) {
             sB.append(character);
             character = source.nextCharacter();
         }
-        for (TokenType keywordTokenType: keywordsTokenTypes){
-            if (sB.toString().equals(keywordTokenType.getKeyword())){
+        for (TokenType keywordTokenType : keywordsTokenTypes) {
+            if (sB.toString().equals(keywordTokenType.getKeyword())) {
                 currentToken = new SimpleToken(keywordTokenType);
                 return true;
             }
@@ -190,13 +190,50 @@ public class CodeLexer implements Lexer {
         return ch.isBlank() || ch.matches("[+\\-*/.\\\\!:;'\"()\\[\\]{}<>=#]");
     }
 
-    private boolean tryBuildString() {
-        return true;
+    private boolean tryBuildString() throws IOException {
+        if (!character.equals("[")) return false;
+        StringBuilder sB = new StringBuilder();
+        character = source.nextCharacter();
+        while (!character.equals("]")) {
+            if (false /* TODO out of config range*/) return false;
+            if (character.equals("\\")) {
+                character = source.nextCharacter();
+                switch (character) {
+                    case "\\":
+                        sB.append("\\");
+                        break;
+                    case "b":
+                        sB.append("\b");
+                        break;
+                    case "f":
+                        sB.append("\f");
+                        break;
+                    case "n":
+                        sB.append("\n");
+                        break;
+                    case "r":
+                        sB.append("\r");
+                        break;
+                    case "t":
+                        sB.append("\t");
+                        break;
+                    default:
+                        // includes string literal delimiter
+                        sB.append(character);
+                }
+                character = source.nextCharacter();
+            } else {
+                sB.append(character);
+                character = source.nextCharacter();
+            }
+        }
+        currentToken = new StringToken(sB.toString());
+        return true; // TODO lexer error
     }
 
     private void verifyEOL() throws IOException {
         while ((character).isBlank()) {
-            if (newlineCharacter != null){
+            if (newlineCharacter != null) {
                 // TODO increment line (maybe not here but in source)
                 character = source.nextCharacter();
                 continue;
@@ -222,11 +259,11 @@ public class CodeLexer implements Lexer {
             return new SimpleToken(TokenType.EOF);
         }
         if (tryBuildSingleCharToken()
-                ||tryBuildRelationToken()
+                || tryBuildRelationToken()
 //            || tryBuildNumber()
                 || tryBuildIdentOrKeyword()
 //            || tryBuildComment
-//            || tryBuildString()
+                || tryBuildString()
         ) {
             return currentToken;
         }
