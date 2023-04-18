@@ -22,30 +22,6 @@ public class StringSource implements Source{
         if((c = this.stringReader.read()) == EOF){
             return ETX;
         }
-//        if (c == '\\') {
-//            c = this.stringReader.read();
-//            switch (c) {
-//                case '\\':
-//                    c = '\\';
-//                    break;
-//                case 'b':
-//                    c = '\b';
-//                    break;
-//                case 'f':
-//                    c = '\f';
-//                    break;
-//                case 'n':
-//                    c = '\n';
-//                    break;
-//                case 'r':
-//                    c = '\r';
-//                    break;
-//                case 't':
-//                    c = '\t';
-//                    break;
-//                default:
-//                    // includes string literal delimiter
-//                    c = character);
         if ( HIGH_SURROGATE_MIN < c && c < HIGH_SURROGATE_MAX){
             int lowSurrogate = this.stringReader.read();
             if (LOW_SURROGATE_MIN < lowSurrogate && lowSurrogate < LOW_SURROGATE_MAX){
