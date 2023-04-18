@@ -1,6 +1,6 @@
 package org.example.lexer;
 
-import org.example.source.ISource;
+import org.example.source.Source;
 import org.example.token.*;
 import org.example.types.Date;
 import org.example.types.Period;
@@ -21,10 +21,10 @@ public class CodeLexer implements Lexer {
     private final int identifierMaxLength;
     private final int stringLiteralMaxLength;
 
-    private final ISource source;
+    private final Source source;
 
 
-    public CodeLexer(ISource source) throws IOException {
+    public CodeLexer(Source source) throws IOException {
         this.source = source;
         character = source.nextCharacter();
         Properties props = new Properties();
@@ -201,22 +201,27 @@ public class CodeLexer implements Lexer {
             return true;
         }
         if (character.matches("[mM]")) {
+            character = source.nextCharacter();
             currentToken = new PeriodToken(new Period(0, wholePart, 0, 0, 0, 0));
             return true;
         }
         if (character.matches("[dD]")) {
+            character = source.nextCharacter();
             currentToken = new PeriodToken(new Period(0, 0, wholePart, 0, 0, 0));
             return true;
         }
         if (character.matches("[hH]")) {
+            character = source.nextCharacter();
             currentToken = new PeriodToken(new Period(0, 0, 0, wholePart, 0, 0));
             return true;
         }
         if (character.equals("'")) {
+            character = source.nextCharacter();
             currentToken = new PeriodToken(new Period(0, 0, 0, 0, wholePart, 0));
             return true;
         }
         if (character.equals("\"")) {
+            character = source.nextCharacter();
             currentToken = new PeriodToken(new Period(0, 0, 0, 0, 0, wholePart));
             return true;
         }
@@ -287,7 +292,7 @@ public class CodeLexer implements Lexer {
     }
 
     private boolean isEndOfKeywordOrIdent(String ch) {
-        return ch.isBlank() || ch.matches("[+\\-*/.\\\\!:;'\"()\\[\\]{}<>=#]");
+        return ch.isBlank() || ch.equals("\0") || ch.matches("[+\\-*/.\\\\!:;'\"()\\[\\]{}<>=#]");
     }
 
     private boolean tryBuildString() throws IOException {
@@ -330,6 +335,7 @@ public class CodeLexer implements Lexer {
             }
         }
         currentToken = new StringToken(sB.toString());
+        character = source.nextCharacter();
         return true; // TODO lexer error
     }
 

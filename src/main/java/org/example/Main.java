@@ -2,7 +2,7 @@ package org.example;
 
 import org.example.lexer.CodeLexer;
 import org.example.token.*;
-import org.example.source.Source;
+import org.example.source.FileSource;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.*;
@@ -18,7 +18,7 @@ public class Main {
     }
 
     private static void runPipeline(String fileName) throws IOException {
-        Source source = new Source(fileName);
+        FileSource source = new FileSource(fileName);
         CodeLexer codeLexer = new CodeLexer(source);
         Token xd;
         while ((xd = codeLexer.next()).getType() != TokenType.EOF) {
