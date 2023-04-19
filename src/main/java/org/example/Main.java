@@ -1,6 +1,7 @@
 package org.example;
 
 import org.example.lexer.CodeLexer;
+import org.example.lexer.CommentLexer;
 import org.example.token.*;
 import org.example.source.FileSource;
 import org.jetbrains.annotations.NotNull;
@@ -20,24 +21,25 @@ public class Main {
     private static void runPipeline(String fileName) throws IOException {
         FileSource source = new FileSource(fileName);
         CodeLexer codeLexer = new CodeLexer(source);
-        Token xd;
-        while ((xd = codeLexer.next()).getType() != TokenType.EOF) {
-            System.out.println(xd.getType().name());
-            if (xd.getType() == TokenType.STRING){
-                StringToken xd1 = (StringToken) xd;
-                System.out.println(xd1.getValue());
-            } else if (xd.getType() == TokenType.DOUBLE){
-                DoubleToken xd1 = (DoubleToken) xd;
-                System.out.println(xd1.getValue());
-            } else if (xd.getType() == TokenType.INT){
-                IntToken xd1 = (IntToken) xd;
-                System.out.println(xd1.getValue());
-            } else if (xd.getType() == TokenType.IDENTIFIER){
-                IdentifierToken xd1 = (IdentifierToken) xd;
-                System.out.println(xd1.getName());
-            } else if (xd.getType() == TokenType.COMMENT){
-                CommentToken xd1 = (CommentToken) xd;
-                System.out.println(xd1.getValue());
+        CommentLexer commentLexer = new CommentLexer(codeLexer);
+        Token tok;
+        while ((tok = commentLexer.next()).getType() != TokenType.EOF) {
+            System.out.println(tok.getType().name());
+            if (tok.getType() == TokenType.STRING){
+                StringToken tok1 = (StringToken) tok;
+                System.out.println(tok1.getValue());
+            } else if (tok.getType() == TokenType.DOUBLE){
+                DoubleToken tok1 = (DoubleToken) tok;
+                System.out.println(tok1.getValue());
+            } else if (tok.getType() == TokenType.INT){
+                IntToken tok1 = (IntToken) tok;
+                System.out.println(tok1.getValue());
+            } else if (tok.getType() == TokenType.IDENTIFIER){
+                IdentifierToken tok1 = (IdentifierToken) tok;
+                System.out.println(tok1.getName());
+            } else if (tok.getType() == TokenType.COMMENT){
+                CommentToken tok1 = (CommentToken) tok;
+                System.out.println(tok1.getValue());
             }
         }
     }
