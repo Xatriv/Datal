@@ -4,7 +4,7 @@ import org.example.error.ErrorManager;
 import org.example.lexer.CodeLexer;
 import org.example.lexer.CommentLexer;
 import org.example.token.*;
-import org.example.source.DatalSource;
+import org.example.source.CodeSource;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.*;
@@ -21,7 +21,7 @@ public class Main {
 
     private static void runPipeline(String fileName) throws IOException {
         try (Reader fileReader = new FileReader(fileName)){
-            DatalSource source = new DatalSource(fileReader);
+            CodeSource source = new CodeSource(fileReader);
             ErrorManager eM = new ErrorManager();
             CodeLexer codeLexer = new CodeLexer(source, eM);
             CommentLexer commentLexer = new CommentLexer(codeLexer);

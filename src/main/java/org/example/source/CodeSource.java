@@ -7,7 +7,7 @@ import lombok.Setter;
 import java.io.*;
 
 
-public class StringSource implements Source {
+public class CodeSource implements Source {
     public static final int EOF = -1;
     public static final String ETX = "\0";
 
@@ -16,25 +16,26 @@ public class StringSource implements Source {
     public static final int LOW_SURROGATE_MIN = 0xDC00;
     public static final int LOW_SURROGATE_MAX = 0xDFFF;
 
-    private final StringReader stringReader;
+    private final BufferedReader bufferedReader;
 
     @Getter
     @Setter(AccessLevel.PRIVATE)
     private Position position;
     @Getter
     private String newlineCharacter;
-
     private int character;
 
-    public StringSource(String code) {
+    public CodeSource(Reader reader) {
         this.position = new Position(1, 0);
-        this.stringReader = new StringReader(code);
+        this.bufferedReader = new BufferedReader(reader);
     }
 
     private boolean isEOL() throws IOException {
+        // TODO przepisać na 1. sprawdzenie czy mamy już wzorzec 2. porównanie czy wystąpił
+        // jezeli mamy to idziemy wg wzorca jak nie to musimy go ustalić
         if (character == '\n') {
-            stringReader.mark(1);
-            character = stringReader.read();
+            bufferedReader.mark(1);
+            character = bufferedReader.read();
             if (character == '\r') {
                 if (newlineCharacter == null) {
                     newlineCharacter = "\n\r";
@@ -43,19 +44,19 @@ public class StringSource implements Source {
                 if (newlineCharacter == null) {
                     newlineCharacter = "\n";
                 }
-                stringReader.reset();
+                bufferedReader.reset();
             }
             return true;
         } else if (character == '\r') {
-            stringReader.mark(1);
-            character = stringReader.read();
+            bufferedReader.mark(1);
+            character = bufferedReader.read();
             if (character == '\n') {
                 if (newlineCharacter == null) {
                     newlineCharacter = "\r\n";
                 }
                 return true;
             }
-            stringReader.reset();
+            bufferedReader.reset();
             return false;
         }
         return false;
@@ -63,7 +64,7 @@ public class StringSource implements Source {
 
     @Override
     public String nextCharacter() throws IOException {
-        if ((character = this.stringReader.read()) == EOF) {
+        if ((character = this.bufferedReader.read()) == EOF) {
             return ETX;
         }
         if (isEOL()) {
@@ -71,7 +72,8 @@ public class StringSource implements Source {
             return newlineCharacter;
         }
         if (HIGH_SURROGATE_MIN < character && character < HIGH_SURROGATE_MAX) {
-            int lowSurrogate = this.stringReader.read();
+            int lowSurrogate = this.bufferedReader.read();
+
             if (LOW_SURROGATE_MIN < lowSurrogate && lowSurrogate < LOW_SURROGATE_MAX) {
                 int codePoint = Character.toCodePoint((char) character, (char) lowSurrogate);
                 position.incrementColumn();
