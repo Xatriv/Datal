@@ -84,7 +84,7 @@ public class CodeLexer implements Lexer {
         for (TokenType type : singleCharTokenTypes) {
             if (character.equals(type.getKeyword())) {
                 character = source.nextCharacter();
-                currentToken = new SimpleToken(type);
+                currentToken = new SimpleToken(type, position);
                 return true;
             }
         }
@@ -94,16 +94,16 @@ public class CodeLexer implements Lexer {
     private boolean tryBuildRelationToken() throws IOException {
         if (character.equals("=")) {
             if ((character = source.nextCharacter()).equals("=")) {
-                currentToken = new SimpleToken(TokenType.EQUALS);
+                currentToken = new SimpleToken(TokenType.EQUALS, position);
                 character = source.nextCharacter();
                 return true;
             }
-            currentToken = new SimpleToken(TokenType.ASSIGN);
+            currentToken = new SimpleToken(TokenType.ASSIGN, position);
             return true;
         }
         if (character.equals("!")) {
             if ((character = source.nextCharacter()).equals("=")) {
-                currentToken = new SimpleToken(TokenType.NOT_EQUAL);
+                currentToken = new SimpleToken(TokenType.NOT_EQUAL, position);
                 character = source.nextCharacter();
                 return true;
             }
@@ -112,20 +112,20 @@ public class CodeLexer implements Lexer {
         }
         if (character.equals("<")) {
             if ((character = source.nextCharacter()).equals("=")) {
-                currentToken = new SimpleToken(TokenType.LESS_OR_EQUAL_THAN);
+                currentToken = new SimpleToken(TokenType.LESS_OR_EQUAL_THAN, position);
                 character = source.nextCharacter();
                 return true;
             }
-            currentToken = new SimpleToken(TokenType.LESS_THAN);
+            currentToken = new SimpleToken(TokenType.LESS_THAN, position);
             return true;
         }
         if (character.equals(">")) {
             if ((character = source.nextCharacter()).equals("=")) {
-                currentToken = new SimpleToken(TokenType.MORE_OR_EQUAL_THAN);
+                currentToken = new SimpleToken(TokenType.MORE_OR_EQUAL_THAN, position);
                 character = source.nextCharacter();
                 return true;
             }
-            currentToken = new SimpleToken(TokenType.MORE_THAN);
+            currentToken = new SimpleToken(TokenType.MORE_THAN, position);
             return true;
         }
         return false;
@@ -163,7 +163,7 @@ public class CodeLexer implements Lexer {
                 character = source.nextCharacter();
             }
             double result = wholePart + (double) fractionPart / Math.pow(10, decimalDigits);
-            currentToken = new DoubleToken(result);
+            currentToken = new DoubleToken(result, position);
             return true;
         }
         if (character.matches("[yYAB]")) {
@@ -173,7 +173,7 @@ public class CodeLexer implements Lexer {
                 return false;
             }
             if (!(character = source.nextCharacter()).equals(":")) {
-                currentToken = new PeriodToken(new Period(wholePart, 0, 0, 0, 0, 0));
+                currentToken = new PeriodToken(new Period(wholePart, 0, 0, 0, 0, 0), position);
                 return true;
             }
             character = source.nextCharacter();
@@ -203,35 +203,35 @@ public class CodeLexer implements Lexer {
             }
             character = source.nextCharacter();
             currentToken = new DateToken(new Date(isEraAC, wholePart, monthValue,
-                    dayValue, hourValue, minuteValue, secondValue));
+                    dayValue, hourValue, minuteValue, secondValue), position);
             return true;
         }
         if (character.matches("[mM]")) {
             character = source.nextCharacter();
-            currentToken = new PeriodToken(new Period(0, wholePart, 0, 0, 0, 0));
+            currentToken = new PeriodToken(new Period(0, wholePart, 0, 0, 0, 0), position);
             return true;
         }
         if (character.matches("[dD]")) {
             character = source.nextCharacter();
-            currentToken = new PeriodToken(new Period(0, 0, wholePart, 0, 0, 0));
+            currentToken = new PeriodToken(new Period(0, 0, wholePart, 0, 0, 0), position);
             return true;
         }
         if (character.matches("[hH]")) {
             character = source.nextCharacter();
-            currentToken = new PeriodToken(new Period(0, 0, 0, wholePart, 0, 0));
+            currentToken = new PeriodToken(new Period(0, 0, 0, wholePart, 0, 0), position);
             return true;
         }
         if (character.equals("'")) {
             character = source.nextCharacter();
-            currentToken = new PeriodToken(new Period(0, 0, 0, 0, wholePart, 0));
+            currentToken = new PeriodToken(new Period(0, 0, 0, 0, wholePart, 0), position);
             return true;
         }
         if (character.equals("\"")) {
             character = source.nextCharacter();
-            currentToken = new PeriodToken(new Period(0, 0, 0, 0, 0, wholePart));
+            currentToken = new PeriodToken(new Period(0, 0, 0, 0, 0, wholePart), position);
             return true;
         }
-        currentToken = new IntToken(wholePart);
+        currentToken = new IntToken(wholePart, position);
         return true;
     }
 
@@ -289,11 +289,11 @@ public class CodeLexer implements Lexer {
         }
         for (TokenType keywordTokenType : keywordsTokenTypes) {
             if (sB.toString().equals(keywordTokenType.getKeyword())) {
-                currentToken = new SimpleToken(keywordTokenType);
+                currentToken = new SimpleToken(keywordTokenType, position);
                 return true;
             }
         }
-        currentToken = new IdentifierToken(sB.toString());
+        currentToken = new IdentifierToken(sB.toString(), position);
         return true;
     }
 
@@ -340,7 +340,7 @@ public class CodeLexer implements Lexer {
                 character = source.nextCharacter();
             }
         }
-        currentToken = new StringToken(sB.toString());
+        currentToken = new StringToken(sB.toString(), position);
         character = source.nextCharacter();
         return true; // TODO lexer error
     }
@@ -356,7 +356,7 @@ public class CodeLexer implements Lexer {
             sB.append(character);
         }
         character = source.nextCharacter();
-        currentToken = new CommentToken(sB.toString());
+        currentToken = new CommentToken(sB.toString(), position);
         return true;
     }
 
@@ -367,7 +367,7 @@ public class CodeLexer implements Lexer {
         }
         position = source.getPosition(); //TODO remove only after making parameter in Token
         if (character.equals(TokenType.EOF.getKeyword())) {
-            return new SimpleToken(TokenType.EOF);
+            return new SimpleToken(TokenType.EOF, position);
         }
         System.out.printf("Position: col %d, line %d%n",
                 source.getPosition().getColumn(), source.getPosition().getLine()); //TODO remove and add pos to tokens
@@ -381,7 +381,7 @@ public class CodeLexer implements Lexer {
             return currentToken;
         }
         character = source.nextCharacter();
-        return new SimpleToken(TokenType.PLUS); //TODO change to lexer unknown token error
+        return new SimpleToken(TokenType.PLUS, position); //TODO change to lexer unknown token error
     }
 
 

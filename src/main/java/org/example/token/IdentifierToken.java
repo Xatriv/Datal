@@ -3,6 +3,7 @@ package org.example.token;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
+import org.example.source.Position;
 
 public class IdentifierToken implements Token{
     @Getter @Setter(AccessLevel.PRIVATE)
@@ -10,7 +11,10 @@ public class IdentifierToken implements Token{
 
     @Getter
     private final TokenType type = TokenType.IDENTIFIER;
-    public IdentifierToken(String name){
+    @Getter
+    private final Position position;
+    public IdentifierToken(String name, Position position){
         this.name=name;
+        this.position = position;
     }
 }

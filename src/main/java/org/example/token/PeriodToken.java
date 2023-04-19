@@ -3,6 +3,7 @@ package org.example.token;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
+import org.example.source.Position;
 import org.example.types.Period;
 
 public class PeriodToken implements Token{
@@ -10,7 +11,10 @@ public class PeriodToken implements Token{
     private Period value;
     @Getter
     private final TokenType type = TokenType.PERIOD;
-    public PeriodToken(Period value){
+    @Getter
+    private final Position position;
+    public PeriodToken(Period value, Position position){
         this.value=value;
+        this.position = position;
     }
 }
