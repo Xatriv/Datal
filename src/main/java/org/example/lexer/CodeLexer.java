@@ -1,5 +1,6 @@
 package org.example.lexer;
 
+import org.example.source.Position;
 import org.example.source.Source;
 import org.example.token.*;
 import org.example.types.Date;
@@ -20,6 +21,8 @@ public class CodeLexer implements Lexer {
     private String newlineCharacter;
     private final int identifierMaxLength;
     private final int stringLiteralMaxLength;
+
+    private Position position;
 
     private final Source source;
 
@@ -339,33 +342,17 @@ public class CodeLexer implements Lexer {
         return true; // TODO lexer error
     }
 
-    private void verifyEOL() throws IOException {
-        while ((character).isBlank()) {
-            if (newlineCharacter != null) {
-                // TODO increment line (maybe not here but in source)
-                character = source.nextCharacter();
-                continue;
-            }
-            if (character.equals("\n")) {
-                character = source.nextCharacter();
-                newlineCharacter = character.equals("\r") ? "\n\r" : "\n";
-            } else if (character.equals("\r")) {
-                character = source.nextCharacter();
-                if (character.equals("\n")) {
-                    newlineCharacter = "\r\n";
-                }
-            } else {
-                character = source.nextCharacter();
-            }
-        }
-    }
-
     @Override
     public Token next() throws IOException {
-        verifyEOL();
+        while ((character).isBlank()) {
+            character = source.nextCharacter();
+        }
+        position = source.getPosition();
         if (character.equals(TokenType.EOF.getKeyword())) {
             return new SimpleToken(TokenType.EOF);
         }
+        System.out.printf("Position: col %d, line %d%n",
+                source.getPosition().getColumn(), source.getPosition().getLine());
         if (tryBuildSingleCharToken()
                 || tryBuildRelationToken()
                 || tryBuildNumber()

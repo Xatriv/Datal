@@ -21,8 +21,8 @@ public class Position {
 
     public Position(int line, int column){
         this.line = line;
-        this.column = column;
-        this.startColumn = column;
+        this.column = column - 1;
+        this.startColumn = column - 1;
     }
 
 }
