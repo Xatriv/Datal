@@ -42,6 +42,7 @@ public enum TokenType {
     PERIOD,
 
     IDENTIFIER,
+    COMMENT,
 
     // Multiple conventions. First occurrence determines newline char sequence
     EOL, // TODO check if keyword can be null

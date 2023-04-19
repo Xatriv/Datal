@@ -16,11 +16,11 @@ import java.lang.Math;
 
 public class CodeLexer implements Lexer {
 
-    private String character; //maybe unnecessary
+    private String character;
     private Token currentToken;
-    private String newlineCharacter;
     private final int identifierMaxLength;
     private final int stringLiteralMaxLength;
+    private final int commentMaxLength;
 
     private Position position;
 
@@ -33,15 +33,18 @@ public class CodeLexer implements Lexer {
         Properties props = new Properties();
         int identifierMaxLengthProp = -1;
         int stringLiteralMaxLengthProp = -1;
+        int commentMaxLengthProp = -1;
         try {
             InputStream input = new FileInputStream("src/main/java/org/example/lexer/lexer.properties");
             props.load(input);
             identifierMaxLengthProp = readProperty(props, "IDENTIFIER_MAX_LENGTH", -1);
             stringLiteralMaxLengthProp = readProperty(props, "STRING_LITERAL_MAX_LENGTH", -1);
+            commentMaxLengthProp = readProperty(props, "COMMENT_MAX_LENGTH", -1);
         } catch (IOException ignored) {
         } finally {
             this.identifierMaxLength = identifierMaxLengthProp;
             this.stringLiteralMaxLength = stringLiteralMaxLengthProp;
+            this.commentMaxLength = commentMaxLengthProp;
         }
     }
 
@@ -341,6 +344,21 @@ public class CodeLexer implements Lexer {
         character = source.nextCharacter();
         return true; // TODO lexer error
     }
+    private boolean tryBuildComment() throws IOException {
+        if (!character.equals("#")) return false;
+        int initialLine = source.getPosition().getLine();
+        StringBuilder sB = new StringBuilder();
+        while (!(character = source.nextCharacter()).equals(source.getNewlineCharacter())){
+            if (0 < commentMaxLength && commentMaxLength < sB.length()){
+                //TODO report error comment too long
+                return false;
+            }
+            sB.append(character);
+        }
+        character = source.nextCharacter();
+        currentToken = new CommentToken(sB.toString());
+        return true;
+    }
 
     @Override
     public Token next() throws IOException {
@@ -357,7 +375,7 @@ public class CodeLexer implements Lexer {
                 || tryBuildRelationToken()
                 || tryBuildNumber()
                 || tryBuildIdentOrKeyword()
-//            || tryBuildComment
+                || tryBuildComment()
                 || tryBuildString()
         ) {
             return currentToken;
@@ -365,5 +383,6 @@ public class CodeLexer implements Lexer {
         character = source.nextCharacter();
         return new SimpleToken(TokenType.PLUS); //TODO change to lexer unknown token error
     }
+
 
 }

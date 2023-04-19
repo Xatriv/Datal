@@ -3,4 +3,5 @@ int +-*/ main() {😋葛葛葛葛葛葛葛葛👾
     and or not if else while whilewhile while
     return 0.123 0;
     12y 1AC:12m:123d:1234h:12345':123456"
+    # to jest komentarz *
 } return

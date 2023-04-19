@@ -1,10 +1,7 @@
 import org.example.lexer.CodeLexer;
 import org.example.source.FileSource;
 import org.example.source.StringSource;
-import org.example.token.IdentifierToken;
-import org.example.token.StringToken;
-import org.example.token.Token;
-import org.example.token.TokenType;
+import org.example.token.*;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -141,5 +138,22 @@ public class LexerTests {
         assertEquals(TokenType.SEMICOLON, tokens.get(1).getType());
         assertEquals(TokenType.STRING, tokens.get(2).getType());
         assertEquals("\n\r]\\A", ((StringToken) tokens.get(2)).getValue());
+    }
+
+    @Test
+    void buildComment() throws IOException {
+        String code = "hello#thisIsComment */return\nreturn";
+        List<Token> tokens = new ArrayList<>();
+        StringSource source = new StringSource(code);
+        CodeLexer codeLexer = new CodeLexer(source);
+        Token t;
+        while ((t = codeLexer.next()).getType() != TokenType.EOF)
+            tokens.add(t);
+        assertEquals(3, tokens.size());
+        assertEquals(TokenType.IDENTIFIER, tokens.get(0).getType());
+        assertEquals("hello", ((IdentifierToken) tokens.get(0)).getName());
+        assertEquals(TokenType.COMMENT, tokens.get(1).getType());
+        assertEquals("thisIsComment */return", ((CommentToken) tokens.get(1)).getValue());
+        assertEquals(TokenType.RETURN, tokens.get(2).getType());
     }
 }
