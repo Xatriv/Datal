@@ -1,5 +1,8 @@
 package org.example.lexer;
 
+import org.example.error.ErrorManager;
+import org.example.error.LexerErrorInfo;
+import org.example.error.Severity;
 import org.example.source.Position;
 import org.example.source.Source;
 import org.example.token.*;
@@ -25,10 +28,12 @@ public class CodeLexer implements Lexer {
     private Position position;
 
     private final Source source;
+    private final ErrorManager errorManager;
 
 
-    public CodeLexer(Source source) throws IOException {
+    public CodeLexer(Source source, ErrorManager errorManager) throws IOException {
         this.source = source;
+        this.errorManager = errorManager;
         character = source.nextCharacter();
         Properties props = new Properties();
         int identifierMaxLengthProp = -1;
@@ -105,10 +110,11 @@ public class CodeLexer implements Lexer {
             if ((character = source.nextCharacter()).equals("=")) {
                 currentToken = new SimpleToken(TokenType.NOT_EQUAL, position);
                 character = source.nextCharacter();
-                return true;
+            } else {
+                errorManager.reportError(
+                        new LexerErrorInfo(Severity.WARN, position, "Could not build relation operator."));
             }
-            // TODO lexer error
-            return false;
+            return true;
         }
         if (character.equals("<")) {
             if ((character = source.nextCharacter()).equals("=")) {
@@ -138,7 +144,8 @@ public class CodeLexer implements Lexer {
         while (charIsDigit(character = source.nextCharacter())) {
             int digit = character.charAt(0) - '0';
             if ((Integer.MAX_VALUE - digit) / 10 - wholePart < 0) {
-                //TODO report lexer error - overflow
+                errorManager.reportError(
+                        new LexerErrorInfo(Severity.ERROR, position, "Overflow while building integer"));
                 return false;
             }
             wholePart = wholePart * 10 + digit;
@@ -148,13 +155,16 @@ public class CodeLexer implements Lexer {
             int decimalDigits = 0;
             character = source.nextCharacter();
             if (!charIsDigit(character)) {
-                //TODO report lexer error - could not build double
-                return false;
+                errorManager.reportError(
+                        new LexerErrorInfo(Severity.INFO, position, "Unexpected character while building double"));
+                currentToken = new IntToken(wholePart, position);
+                return true;
             }
             while (charIsDigit(character)) {
                 int digit = character.charAt(0) - '0';
-                if ((Integer.MAX_VALUE - digit) / 10 - wholePart < 0) {
-                    // TODO report lexer error - overflow
+                if ((Integer.MAX_VALUE - digit) / 10 - fractionPart < 0) {
+                    errorManager.reportError(
+                            new LexerErrorInfo(Severity.ERROR, position, "Overflow while building double"));
                     return false;
                 }
 
@@ -169,8 +179,10 @@ public class CodeLexer implements Lexer {
         if (character.matches("[yYAB]")) {
             boolean isEraAC = character.matches("[yYA]");
             if (character.matches("[AB]") && !(character = source.nextCharacter()).equals("C")) {
-                // report lexer error - could not build date (unrecognized era; must be either y, Y, AC or BC)
-                return false;
+                errorManager.reportError(
+                        new LexerErrorInfo(Severity.INFO, position, "Unexpected character while building date. Era must be either y, Y, AC or BC "));
+                currentToken = new IntToken(wholePart, position);
+                return true;
             }
             if (!(character = source.nextCharacter()).equals(":")) {
                 currentToken = new PeriodToken(new Period(wholePart, 0, 0, 0, 0, 0), position);
@@ -198,8 +210,11 @@ public class CodeLexer implements Lexer {
             int secondValue;
             if ((secondValue = getDateNumber("second")) < 0) return false;
             if (!character.matches("\"")){
-                // TODO report lexer error (because verifyTimeUnitSymbol is not used anymore)
-                return false;
+                errorManager.reportError(
+                        new LexerErrorInfo(Severity.INFO, position, "Unexpected character while building date. Seconds must be followed by \" "));
+                currentToken = new DateToken(new Date(isEraAC, wholePart, monthValue,
+                        dayValue, hourValue, minuteValue, secondValue), position);
+                return true;
             }
             character = source.nextCharacter();
             currentToken = new DateToken(new Date(isEraAC, wholePart, monthValue,
@@ -237,14 +252,16 @@ public class CodeLexer implements Lexer {
 
     private int getDateNumber(String unit) throws IOException {
         if (!charIsDigit(character)) {
-            //report lexer error - could not build date - empty %%unit%% value
+            errorManager.reportError(
+                    new LexerErrorInfo(Severity.ERROR, position, String.format("Could not build date. Invalid %s unit", unit)));
             return -1;
         }
         int number = character.charAt(0) - '0';
         while (charIsDigit(character = source.nextCharacter())) {
             int digit = character.charAt(0) - '0';
             if ((Integer.MAX_VALUE - digit) / 10 - number < 0) {
-                //TODO report lexer error - overflow
+                errorManager.reportError(
+                        new LexerErrorInfo(Severity.ERROR, position, "Overflow while building date"));
                 return -1;
             }
             number = number * 10 + digit;
@@ -254,12 +271,14 @@ public class CodeLexer implements Lexer {
 
     private boolean verifyTimeUnitSymbol(String regex) throws IOException {
         if (!character.matches(regex)) {
-            //TODO report lexer error - unknown time unit
+            errorManager.reportError(
+                    new LexerErrorInfo(Severity.ERROR, position, "Could not build date. Unrecognized time unit"));
             return false;
         }
         if (!(character = source.nextCharacter()).equals(":")) {
-            //TODO report lexer error - missing separator
-            return false;
+            errorManager.reportError(
+                    new LexerErrorInfo(Severity.WARN, position, "Missing \":\" separator while building date"));
+            return true;
         }
         character = source.nextCharacter();
         return true;
@@ -281,7 +300,8 @@ public class CodeLexer implements Lexer {
                 TokenType.RETURN);
         while (!isEndOfKeywordOrIdent(character)) {
             if ( 0 <= identifierMaxLength && identifierMaxLength < sB.length()) {
-                // TODO lexer error identifier too long
+                errorManager.reportError(
+                        new LexerErrorInfo(Severity.ERROR, position, "Identifier too long"));
                 return false;
             }
             sB.append(character);
@@ -307,6 +327,8 @@ public class CodeLexer implements Lexer {
         character = source.nextCharacter();
         while (!character.equals("]")) {
             if ( 0 <= stringLiteralMaxLength &&  stringLiteralMaxLength < sB.length()) {
+                errorManager.reportError(
+                        new LexerErrorInfo(Severity.ERROR, position, "String too long"));
                 return false;
             }
             if (character.equals("\\")) {
@@ -342,15 +364,15 @@ public class CodeLexer implements Lexer {
         }
         currentToken = new StringToken(sB.toString(), position);
         character = source.nextCharacter();
-        return true; // TODO lexer error
+        return true;
     }
     private boolean tryBuildComment() throws IOException {
         if (!character.equals("#")) return false;
-        int initialLine = source.getPosition().getLine();
         StringBuilder sB = new StringBuilder();
         while (!(character = source.nextCharacter()).equals(source.getNewlineCharacter())){
             if (0 <= commentMaxLength && commentMaxLength < sB.length()){
-                //TODO report error comment too long
+                errorManager.reportError(
+                        new LexerErrorInfo(Severity.ERROR, position, "Comment too long"));
                 return false;
             }
             sB.append(character);
@@ -365,12 +387,10 @@ public class CodeLexer implements Lexer {
         while ((character).isBlank()) {
             character = source.nextCharacter();
         }
-        position = source.getPosition(); //TODO remove only after making parameter in Token
+        position = new Position(source.getPosition().getLine(), source.getPosition().getColumn());
         if (character.equals(TokenType.EOF.getKeyword())) {
             return new SimpleToken(TokenType.EOF, position);
         }
-        System.out.printf("Position: col %d, line %d%n",
-                source.getPosition().getColumn(), source.getPosition().getLine()); //TODO remove and add pos to tokens
         if (tryBuildSingleCharToken()
                 || tryBuildRelationToken()
                 || tryBuildNumber()
@@ -381,8 +401,7 @@ public class CodeLexer implements Lexer {
             return currentToken;
         }
         character = source.nextCharacter();
-        return new SimpleToken(TokenType.PLUS, position); //TODO change to lexer unknown token error
+
+        return new SimpleToken(TokenType.PLUS, position);
     }
-
-
 }

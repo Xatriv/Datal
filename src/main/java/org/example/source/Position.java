@@ -1,11 +1,12 @@
 package org.example.source;
 
 import lombok.Getter;
+import lombok.Setter;
 
 public class Position {
-    @Getter
+    @Getter @Setter
     int line;
-    @Getter
+    @Getter @Setter
     int column;
 
     private final int startColumn;
@@ -21,8 +22,13 @@ public class Position {
 
     public Position(int line, int column){
         this.line = line;
-        this.column = column - 1;
-        this.startColumn = column - 1;
+        this.column = column;
+        this.startColumn = column;
+    }
+
+    @Override
+    public String toString() {
+        return String.format("Line: %d; Column: %d", line, column);
     }
 
 }

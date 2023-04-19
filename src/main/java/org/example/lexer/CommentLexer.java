@@ -1,6 +1,7 @@
 package org.example.lexer;
 
 import lombok.Getter;
+import org.example.error.ErrorManager;
 import org.example.token.Token;
 import org.example.token.TokenType;
 

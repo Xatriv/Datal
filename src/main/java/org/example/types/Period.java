@@ -7,7 +7,7 @@ import lombok.experimental.Accessors;
 @Setter
 @AllArgsConstructor
 @Accessors(chain = true, fluent = true)
-public class Period { //TODO check if actually private
+public class Period {
     private int year;
     private int month;
     private int day;

@@ -16,7 +16,7 @@ public class ErrorManager {
     private final int maxErrors;
 
 
-    private void reportError(CodeErrorInfo err){
+    public void reportError(CodeErrorInfo err){
         errors.add(err);
         if (err.getSeverity() == Severity.ERROR){
             throw new CodeError(err);
@@ -39,7 +39,7 @@ public class ErrorManager {
 
 
 
-    ErrorManager(){
+    public ErrorManager(){
         Properties props = new Properties();
         int maxErrorsProp = -1;
         try {

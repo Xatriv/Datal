@@ -9,7 +9,7 @@ public class LexerErrorInfo implements CodeErrorInfo {
     @Getter
     private final Severity severity;
     @Getter
-    private final String message;
-    @Getter
     private final Position position;
+    @Getter
+    private final String message;
 }

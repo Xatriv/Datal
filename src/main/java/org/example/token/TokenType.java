@@ -45,7 +45,7 @@ public enum TokenType {
     COMMENT,
 
     // Multiple conventions. First occurrence determines newline char sequence
-    EOL, // TODO check if keyword can be null
+    EOL,
     EOF("\0");
 
     TokenType() {}

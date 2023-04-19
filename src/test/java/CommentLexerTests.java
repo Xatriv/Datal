@@ -1,3 +1,4 @@
+import org.example.error.ErrorManager;
 import org.example.lexer.CodeLexer;
 import org.example.lexer.CommentLexer;
 import org.example.source.StringSource;
@@ -16,7 +17,8 @@ public class CommentLexerTests {
         String code = "";
         List<Token> tokens = new ArrayList<>();
         StringSource source = new StringSource(code);
-        CodeLexer codeLexer = new CodeLexer(source);
+        ErrorManager eM = new ErrorManager();
+        CodeLexer codeLexer = new CodeLexer(source, eM);
         CommentLexer commentLexer = new CommentLexer(codeLexer);
         Token t;
         while ((t = commentLexer.next()).getType() != TokenType.EOF)
@@ -29,7 +31,8 @@ public class CommentLexerTests {
         String code = "hello#beautiful\nworld";
         List<Token> tokens = new ArrayList<>();
         StringSource source = new StringSource(code);
-        CodeLexer codeLexer = new CodeLexer(source);
+        ErrorManager eM = new ErrorManager();
+        CodeLexer codeLexer = new CodeLexer(source, eM);
         CommentLexer commentLexer = new CommentLexer(codeLexer);
         Token t;
         while ((t = commentLexer.next()).getType() != TokenType.EOF)
@@ -46,7 +49,8 @@ public class CommentLexerTests {
         String code = "hello\n#beautiful\nworld";
         List<Token> tokens = new ArrayList<>();
         StringSource source = new StringSource(code);
-        CodeLexer codeLexer = new CodeLexer(source);
+        ErrorManager eM = new ErrorManager();
+        CodeLexer codeLexer = new CodeLexer(source, eM);
         CommentLexer commentLexer = new CommentLexer(codeLexer);
         Token t;
         while ((t = commentLexer.next()).getType() != TokenType.EOF)

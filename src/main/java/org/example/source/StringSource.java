@@ -27,7 +27,7 @@ public class StringSource implements Source {
     private int character;
 
     public StringSource(String code) {
-        this.position = new Position(1, 1);
+        this.position = new Position(1, 0);
         this.stringReader = new StringReader(code);
     }
 

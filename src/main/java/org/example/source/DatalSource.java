@@ -7,7 +7,7 @@ import lombok.Setter;
 import java.io.*;
 
 
-public class FileSource implements Source {
+public class DatalSource implements Source {
     public static final int EOF = -1;
     public static final String ETX = "\0";
 
@@ -25,12 +25,16 @@ public class FileSource implements Source {
     private String newlineCharacter;
     private int character;
 
-    public FileSource(String fileName) throws FileNotFoundException {
-        this.position = new Position(1, 1);
-        this.bufferedReader = new BufferedReader(new FileReader(fileName));
+    public DatalSource(Reader reader) {
+        this.position = new Position(1, 0);
+        this.bufferedReader = new BufferedReader(reader){
+
+        };
     }
 
     private boolean isEOL() throws IOException {
+        // TODO przepisać na 1. sprawdzenie czy mamy już wzorzec 2. porównanie czy wystąpił
+        // jezeli mamy to idziemy wg wzorca jak nie to musimy go ustalić
         if (character == '\n') {
             bufferedReader.mark(1);
             character = bufferedReader.read();
@@ -71,12 +75,16 @@ public class FileSource implements Source {
         }
         if (HIGH_SURROGATE_MIN < character && character < HIGH_SURROGATE_MAX) {
             int lowSurrogate = this.bufferedReader.read();
+
             if (LOW_SURROGATE_MIN < lowSurrogate && lowSurrogate < LOW_SURROGATE_MAX) {
                 int codePoint = Character.toCodePoint((char) character, (char) lowSurrogate);
                 position.incrementColumn();
                 return new String(new int[]{codePoint}, 0, 1);
             }
         }
+        StringBuilder sb = new StringBuilder();
+        sb.append(Character.toChars(character));
+        System.out.println(sb.toString());
         position.incrementColumn();
         return new String(Character.toChars(character));
     }
