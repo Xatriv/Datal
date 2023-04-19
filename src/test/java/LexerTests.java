@@ -143,7 +143,7 @@ public class LexerTests {
 
     @Test
     void buildString() throws IOException {
-        String code = "[hello];[\n\r\\]\\\\A]";
+        String code = "[hello];[\\t\\n\\r\\]ABC\\\\D]";
         List<Token> tokens = new ArrayList<>();
         try (Reader sR = new StringReader(code)) {
             CodeSource source = new CodeSource(sR);
@@ -158,7 +158,7 @@ public class LexerTests {
         assertEquals("hello", ((StringToken) tokens.get(0)).getValue());
         assertEquals(TokenType.SEMICOLON, tokens.get(1).getType());
         assertEquals(TokenType.STRING, tokens.get(2).getType());
-        assertEquals("\n\r]\\A", ((StringToken) tokens.get(2)).getValue());
+        assertEquals("\t\n\r]ABC\\D", ((StringToken) tokens.get(2)).getValue());
     }
 
     @Test

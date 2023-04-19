@@ -6,5 +6,5 @@ public interface Source {
 
     Position getPosition();
     String getNewlineCharacter();
-    public String nextCharacter() throws IOException;
+    int nextCharacter() throws IOException;
 }

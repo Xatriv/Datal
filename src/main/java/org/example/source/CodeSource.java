@@ -9,7 +9,7 @@ import java.io.*;
 
 public class CodeSource implements Source {
     public static final int EOF = -1;
-    public static final String ETX = "\0";
+    public static final char ETX = '\0';
 
     public static final int HIGH_SURROGATE_MIN = 0xD800;
     public static final int HIGH_SURROGATE_MAX = 0xDBFF;
@@ -63,13 +63,13 @@ public class CodeSource implements Source {
     }
 
     @Override
-    public String nextCharacter() throws IOException {
+    public int nextCharacter() throws IOException {
         if ((character = this.bufferedReader.read()) == EOF) {
             return ETX;
         }
         if (isEOL()) {
             position.newLine();
-            return newlineCharacter;
+            return '\n';
         }
         if (HIGH_SURROGATE_MIN < character && character < HIGH_SURROGATE_MAX) {
             int lowSurrogate = this.bufferedReader.read();
@@ -77,10 +77,10 @@ public class CodeSource implements Source {
             if (LOW_SURROGATE_MIN < lowSurrogate && lowSurrogate < LOW_SURROGATE_MAX) {
                 int codePoint = Character.toCodePoint((char) character, (char) lowSurrogate);
                 position.incrementColumn();
-                return new String(new int[]{codePoint}, 0, 1);
+                return codePoint;
             }
         }
         position.incrementColumn();
-        return new String(Character.toChars(character));
+        return character;
     }
 }
