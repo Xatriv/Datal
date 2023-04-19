@@ -280,7 +280,7 @@ public class CodeLexer implements Lexer {
                 TokenType.IF, TokenType.ELSE, TokenType.WHILE,
                 TokenType.RETURN);
         while (!isEndOfKeywordOrIdent(character)) {
-            if (identifierMaxLength != -1 && sB.length() > identifierMaxLength) {
+            if ( 0 <= identifierMaxLength && identifierMaxLength < sB.length()) {
                 // TODO lexer error identifier too long
                 return false;
             }
@@ -306,7 +306,7 @@ public class CodeLexer implements Lexer {
         StringBuilder sB = new StringBuilder();
         character = source.nextCharacter();
         while (!character.equals("]")) {
-            if (stringLiteralMaxLength != -1 && sB.length() > stringLiteralMaxLength) {
+            if ( 0 <= stringLiteralMaxLength &&  stringLiteralMaxLength < sB.length()) {
                 return false;
             }
             if (character.equals("\\")) {
@@ -349,7 +349,7 @@ public class CodeLexer implements Lexer {
         int initialLine = source.getPosition().getLine();
         StringBuilder sB = new StringBuilder();
         while (!(character = source.nextCharacter()).equals(source.getNewlineCharacter())){
-            if (0 < commentMaxLength && commentMaxLength < sB.length()){
+            if (0 <= commentMaxLength && commentMaxLength < sB.length()){
                 //TODO report error comment too long
                 return false;
             }
@@ -365,12 +365,12 @@ public class CodeLexer implements Lexer {
         while ((character).isBlank()) {
             character = source.nextCharacter();
         }
-        position = source.getPosition();
+        position = source.getPosition(); //TODO remove only after making parameter in Token
         if (character.equals(TokenType.EOF.getKeyword())) {
             return new SimpleToken(TokenType.EOF);
         }
         System.out.printf("Position: col %d, line %d%n",
-                source.getPosition().getColumn(), source.getPosition().getLine());
+                source.getPosition().getColumn(), source.getPosition().getLine()); //TODO remove and add pos to tokens
         if (tryBuildSingleCharToken()
                 || tryBuildRelationToken()
                 || tryBuildNumber()

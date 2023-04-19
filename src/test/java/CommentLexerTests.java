@@ -19,7 +19,7 @@ public class CommentLexerTests {
         CodeLexer codeLexer = new CodeLexer(source);
         CommentLexer commentLexer = new CommentLexer(codeLexer);
         Token t;
-        while ((t = codeLexer.next()).getType() != TokenType.EOF)
+        while ((t = commentLexer.next()).getType() != TokenType.EOF)
             tokens.add(t);
         assertEquals(0, tokens.size());
     }
