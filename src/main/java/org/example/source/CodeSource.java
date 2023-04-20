@@ -31,33 +31,48 @@ public class CodeSource implements Source {
     }
 
     private boolean isEOL() throws IOException {
-        // TODO przepisać na 1. sprawdzenie czy mamy już wzorzec 2. porównanie czy wystąpił
-        // jezeli mamy to idziemy wg wzorca jak nie to musimy go ustalić
-        if (character == '\n') {
+        if (newlineCharacter == null) {
             bufferedReader.mark(1);
-            character = bufferedReader.read();
-            if (character == '\r') {
-                if (newlineCharacter == null) {
-                    newlineCharacter = "\n\r";
-                }
-            } else {
-                if (newlineCharacter == null) {
-                    newlineCharacter = "\n";
-                }
-                bufferedReader.reset();
-            }
-            return true;
-        } else if (character == '\r') {
-            bufferedReader.mark(1);
-            character = bufferedReader.read();
             if (character == '\n') {
-                if (newlineCharacter == null) {
+                int secondCharacter = bufferedReader.read();
+                newlineCharacter = secondCharacter == '\r' ? "\n\r" : "\n";
+            } else if (character == '\r') {
+                int secondCharacter = bufferedReader.read();
+                if (secondCharacter == '\n') {
                     newlineCharacter = "\r\n";
                 }
-                return true;
             }
             bufferedReader.reset();
-            return false;
+        }
+
+        if (character == '\r'){
+            bufferedReader.mark(1);
+            if (bufferedReader.read() != '\n'){
+                bufferedReader.reset();
+                return false;
+            }
+            if (!newlineCharacter.equals("\r\n")){
+                //throw
+                return false;
+            }
+            return true;
+        }
+        if (character == '\n'){
+            bufferedReader.mark(1);
+            int secondCharacter = bufferedReader.read();
+            if (newlineCharacter.length() == 1){
+                if (secondCharacter == '\r'){
+                    // throw
+                    return false;
+                }
+                bufferedReader.reset();
+                return true;
+            }
+            if (secondCharacter != '\r'){
+                //throw
+                return false;
+            }
+            return true;
         }
         return false;
     }
