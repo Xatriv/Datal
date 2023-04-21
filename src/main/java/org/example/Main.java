@@ -21,8 +21,8 @@ public class Main {
 
     private static void runPipeline(String fileName) throws IOException {
         try (Reader fileReader = new FileReader(fileName)){
-            CodeSource source = new CodeSource(fileReader);
             ErrorManager eM = new ErrorManager();
+            CodeSource source = new CodeSource(fileReader, eM);
             CodeLexer codeLexer = new CodeLexer(source, eM);
             CommentLexer commentLexer = new CommentLexer(codeLexer);
             Token tok;
@@ -45,6 +45,7 @@ public class Main {
                     System.out.println(tok1.getValue());
                 }
             }
+            System.out.printf("%s \t%s%n",tok.getType().name(), tok.getPosition());
         }
     }
 }

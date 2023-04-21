@@ -43,10 +43,11 @@ public enum TokenType {
 
     IDENTIFIER,
     COMMENT,
+    UNKNOWN,
 
     // Multiple conventions. First occurrence determines newline char sequence
     EOL,
-    EOF("\0");
+    EOF;
 
     TokenType() {}
     TokenType(String keyword) {

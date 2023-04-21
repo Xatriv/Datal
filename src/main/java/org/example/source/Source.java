@@ -4,7 +4,8 @@ import java.io.IOException;
 
 public interface Source {
 
+    int EOF = -1;
+    char ETX = 3;
     Position getPosition();
-    String getNewlineCharacter();
     int nextCharacter() throws IOException;
 }

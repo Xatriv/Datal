@@ -26,6 +26,11 @@ public class Position {
         this.startColumn = column;
     }
 
+    public Position (Position position){
+        this.line = position.line;
+        this.column = position.column;
+        this.startColumn = position.startColumn;
+    }
     @Override
     public String toString() {
         return String.format("Line: %d; Column: %d", line, column);

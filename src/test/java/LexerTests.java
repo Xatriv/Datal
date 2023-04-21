@@ -19,8 +19,8 @@ public class LexerTests {
         String code = "";
         List<Token> tokens = new ArrayList<>();
         try (Reader sR = new StringReader(code)) {
-            CodeSource source = new CodeSource(sR);
             ErrorManager eM = new ErrorManager();
+            CodeSource source = new CodeSource(sR, eM);
             CodeLexer codeLexer = new CodeLexer(source, eM);
             Token t;
             while ((t = codeLexer.next()).getType() != TokenType.EOF)
@@ -34,8 +34,8 @@ public class LexerTests {
         String code = "*/+-(){};";
         List<Token> tokens = new ArrayList<>();
         try (Reader sR = new StringReader(code)) {
-            CodeSource source = new CodeSource(sR);
             ErrorManager eM = new ErrorManager();
+            CodeSource source = new CodeSource(sR, eM);
             CodeLexer codeLexer = new CodeLexer(source, eM);
             Token t;
             while ((t = codeLexer.next()).getType() != TokenType.EOF)
@@ -56,17 +56,17 @@ public class LexerTests {
 
     @Test
     void buildRelationTokenTest() throws IOException {
-        String code = ">=>>=<= <=;<=< !=!======";
+        String code = ">=>>=<= <=;<=< !======";
         List<Token> tokens = new ArrayList<>();
         try (Reader sR = new StringReader(code)) {
-            CodeSource source = new CodeSource(sR);
             ErrorManager eM = new ErrorManager();
+            CodeSource source = new CodeSource(sR, eM);
             CodeLexer codeLexer = new CodeLexer(source, eM);
             Token t;
             while ((t = codeLexer.next()).getType() != TokenType.EOF)
                 tokens.add(t);
         }
-        assertEquals(13, tokens.size());
+        assertEquals(12, tokens.size());
         assertNotEquals(TokenType.MORE_THAN, tokens.get(0).getType());
         assertEquals(TokenType.MORE_OR_EQUAL_THAN, tokens.get(0).getType());
         assertEquals(TokenType.MORE_THAN, tokens.get(1).getType());
@@ -77,10 +77,9 @@ public class LexerTests {
         assertEquals(TokenType.LESS_OR_EQUAL_THAN, tokens.get(6).getType());
         assertEquals(TokenType.LESS_THAN, tokens.get(7).getType());
         assertEquals(TokenType.NOT_EQUAL, tokens.get(8).getType());
-        assertEquals(TokenType.NOT_EQUAL, tokens.get(9).getType());
+        assertEquals(TokenType.EQUALS, tokens.get(9).getType());
         assertEquals(TokenType.EQUALS, tokens.get(10).getType());
-        assertEquals(TokenType.EQUALS, tokens.get(11).getType());
-        assertEquals(TokenType.ASSIGN, tokens.get(12).getType());
+        assertEquals(TokenType.ASSIGN, tokens.get(11).getType());
     }
 
     @Test
@@ -88,8 +87,8 @@ public class LexerTests {
         String code = "and id or orornot not knot if IF else Else while return";
         List<Token> tokens = new ArrayList<>();
         try (Reader sR = new StringReader(code)) {
-            CodeSource source = new CodeSource(sR);
             ErrorManager eM = new ErrorManager();
+            CodeSource source = new CodeSource(sR, eM);
             CodeLexer codeLexer = new CodeLexer(source, eM);
             Token t;
             while ((t = codeLexer.next()).getType() != TokenType.EOF)
@@ -120,8 +119,8 @@ public class LexerTests {
         String code = "0 00 001 0.12345;1.2345;12d; 10d 2023Y:1M:1D:0H:0':0\"";
         List<Token> tokens = new ArrayList<>();
         try (Reader sR = new StringReader(code)) {
-            CodeSource source = new CodeSource(sR);
             ErrorManager eM = new ErrorManager();
+            CodeSource source = new CodeSource(sR, eM);
             CodeLexer codeLexer = new CodeLexer(source, eM);
             Token t;
             while ((t = codeLexer.next()).getType() != TokenType.EOF)
@@ -146,8 +145,8 @@ public class LexerTests {
         String code = "[hello];[\\t\\n\\r\\]ABC\\\\D]";
         List<Token> tokens = new ArrayList<>();
         try (Reader sR = new StringReader(code)) {
-            CodeSource source = new CodeSource(sR);
             ErrorManager eM = new ErrorManager();
+            CodeSource source = new CodeSource(sR, eM);
             CodeLexer codeLexer = new CodeLexer(source, eM);
             Token t;
             while ((t = codeLexer.next()).getType() != TokenType.EOF)
@@ -166,8 +165,8 @@ public class LexerTests {
         String code = "hello#thisIsComment */return\nreturn";
         List<Token> tokens = new ArrayList<>();
         try (Reader sR = new StringReader(code)) {
-            CodeSource source = new CodeSource(sR);
             ErrorManager eM = new ErrorManager();
+            CodeSource source = new CodeSource(sR, eM);
             CodeLexer codeLexer = new CodeLexer(source, eM);
             Token t;
             while ((t = codeLexer.next()).getType() != TokenType.EOF)
@@ -185,8 +184,8 @@ public class LexerTests {
     public void errorIntOverflowTest() throws IOException {
         String code = "123456789101112";
         try (Reader sR = new StringReader(code)) {
-            CodeSource source = new CodeSource(sR);
             ErrorManager eM = new ErrorManager();
+            CodeSource source = new CodeSource(sR, eM);
             CodeLexer codeLexer = new CodeLexer(source, eM);
             assertThrows(CodeError.class, () -> {
                 Token t = codeLexer.next();
@@ -199,8 +198,8 @@ public class LexerTests {
     public void errorDoubleOverflowTest() throws IOException {
         String code = "0.123456789101112";
         try (Reader sR = new StringReader(code)) {
-            CodeSource source = new CodeSource(sR);
             ErrorManager eM = new ErrorManager();
+            CodeSource source = new CodeSource(sR, eM);
             CodeLexer codeLexer = new CodeLexer(source, eM);
             assertThrows(CodeError.class, codeLexer::next);
             assertEquals(1, eM.getErrors().size());

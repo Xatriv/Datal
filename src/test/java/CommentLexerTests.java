@@ -19,14 +19,14 @@ public class CommentLexerTests {
         String code = "";
         List<Token> tokens = new ArrayList<>();
         try (Reader sR = new StringReader(code)){
-            CodeSource source = new CodeSource(sR);
             ErrorManager eM = new ErrorManager();
+            CodeSource source = new CodeSource(sR, eM);
             CodeLexer codeLexer = new CodeLexer(source, eM);
             CommentLexer commentLexer = new CommentLexer(codeLexer);
             Token t;
             while ((t = commentLexer.next()).getType() != TokenType.EOF)
                 tokens.add(t);
-        };
+        }
         assertEquals(0, tokens.size());
     }
 
@@ -35,8 +35,8 @@ public class CommentLexerTests {
         String code = "hello#beautiful\nworld";
         List<Token> tokens = new ArrayList<>();
         try (Reader sR = new StringReader(code)) {
-            CodeSource source = new CodeSource(sR);
             ErrorManager eM = new ErrorManager();
+            CodeSource source = new CodeSource(sR, eM);
             CodeLexer codeLexer = new CodeLexer(source, eM);
             CommentLexer commentLexer = new CommentLexer(codeLexer);
             Token t;
@@ -55,8 +55,8 @@ public class CommentLexerTests {
         String code = "hello\n#beautiful\nworld";
         List<Token> tokens = new ArrayList<>();
         try (Reader sR = new StringReader(code)) {
-            CodeSource source = new CodeSource(sR);
             ErrorManager eM = new ErrorManager();
+            CodeSource source = new CodeSource(sR, eM);
             CodeLexer codeLexer = new CodeLexer(source, eM);
             CommentLexer commentLexer = new CommentLexer(codeLexer);
             Token t;
