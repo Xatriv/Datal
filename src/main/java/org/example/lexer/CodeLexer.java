@@ -64,6 +64,7 @@ public class CodeLexer implements Lexer {
         }
     }
 
+    @SuppressWarnings("SameParameterValue")
     private static int readProperty(Properties props, String key, int defaultValue) {
         String value = props.getProperty(key);
         if (value == null) {
@@ -77,6 +78,7 @@ public class CodeLexer implements Lexer {
     }
 
 
+    @SuppressWarnings("unused")
     private void printConfig() {
         System.out.println(this.identifierMaxLength);
         System.out.println(this.stringLiteralMaxLength);
@@ -87,6 +89,7 @@ public class CodeLexer implements Lexer {
         return currentToken;
     }
 
+    @SuppressWarnings("unused")
     private void setToken(Token token) {
         this.currentToken = token;
     }
@@ -205,19 +208,19 @@ public class CodeLexer implements Lexer {
 
         int monthValue;
         if ((monthValue = getDateNumber("month")) < 0) return false;
-        if (!verifyTimeUnitSymbol("mM")) return false;
+        if (isTimeUnitSymbolInvalid("mM")) return false;
 
         int dayValue;
         if ((dayValue = getDateNumber("day")) < 0) return false;
-        if (!verifyTimeUnitSymbol("dD")) return false;
+        if (isTimeUnitSymbolInvalid("dD")) return false;
 
         int hourValue;
         if ((hourValue = getDateNumber("hour")) < 0) return false;
-        if (!verifyTimeUnitSymbol("hH")) return false;
+        if (isTimeUnitSymbolInvalid("hH")) return false;
 
         int minuteValue;
         if ((minuteValue = getDateNumber("minute")) < 0) return false;
-        if (!verifyTimeUnitSymbol("'")) return false;
+        if (isTimeUnitSymbolInvalid("'")) return false;
 
 
         int secondValue;
@@ -281,19 +284,19 @@ public class CodeLexer implements Lexer {
         return number;
     }
 
-    private boolean verifyTimeUnitSymbol(String letters) throws IOException {
+    private boolean isTimeUnitSymbolInvalid(String letters) throws IOException {
         if (letters.indexOf(character) == -1) {
             errorManager.reportError(
                     new LexerErrorInfo(Severity.ERROR, position, "Could not build date. Unrecognized time unit"));
-            return false;
+            return true;
         }
         if (!((character = source.nextCharacter()) == ':')) {
             errorManager.reportError(
                     new LexerErrorInfo(Severity.WARN, position, "Missing \":\" separator while building date"));
-            return true;
+            return false;
         }
         character = source.nextCharacter();
-        return true;
+        return false;
     }
 
     private boolean tryBuildIdentOrKeyword() throws IOException {

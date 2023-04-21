@@ -54,6 +54,11 @@ public class CodeSource implements Source {
             return true;
         }
         if (character == '\n') {
+            if (newlineSequence.charAt(0) == '\r'){
+                errorManager.reportError(
+                        new LexerErrorInfo(Severity.ERROR, position, "Inconsistent end of line convention."));
+                return false;
+            }
             bufferedReader.mark(1);
             int secondCharacter = bufferedReader.read();
             if (newlineSequence.length() == 1) {

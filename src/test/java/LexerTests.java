@@ -188,7 +188,8 @@ public class LexerTests {
             CodeSource source = new CodeSource(sR, eM);
             CodeLexer codeLexer = new CodeLexer(source, eM);
             assertThrows(CodeError.class, () -> {
-                Token t = codeLexer.next();
+                //noinspection Convert2MethodRef
+                codeLexer.next();
             });
             assertEquals(1, eM.getErrors().size());
         }
@@ -203,6 +204,205 @@ public class LexerTests {
             CodeLexer codeLexer = new CodeLexer(source, eM);
             assertThrows(CodeError.class, codeLexer::next);
             assertEquals(1, eM.getErrors().size());
+        }
+    }
+
+    @Test
+    public void positionEmptyFile() throws IOException {
+        String code = "";
+        List<Token> tokens = new ArrayList<>();
+        try (Reader sR = new StringReader(code)){
+            ErrorManager eM = new ErrorManager();
+            CodeSource source = new CodeSource(sR, eM);
+            CodeLexer codeLexer = new CodeLexer(source, eM);
+            Token t;
+            while ((t = codeLexer.next()).getType() != TokenType.EOF)
+                tokens.add(t);
+            assertEquals(0, tokens.size());
+            assertEquals(TokenType.EOF, t.getType());
+            assertEquals(1, t.getPosition().getColumn());
+            assertEquals(1, t.getPosition().getLine());
+        }
+    }
+
+    @Test
+    public void positionSingleToken() throws IOException {
+        String code = "return";
+        List<Token> tokens = new ArrayList<>();
+        try (Reader sR = new StringReader(code)){
+            ErrorManager eM = new ErrorManager();
+            CodeSource source = new CodeSource(sR, eM);
+            CodeLexer codeLexer = new CodeLexer(source, eM);
+            Token t;
+            while ((t = codeLexer.next()).getType() != TokenType.EOF)
+                tokens.add(t);
+            tokens.add(t); //EOF
+            assertEquals(2, tokens.size());
+            assertEquals(1, tokens.get(0).getPosition().getColumn());
+            assertEquals(1, tokens.get(0).getPosition().getLine());
+            assertEquals(7, tokens.get(1).getPosition().getColumn());
+            assertEquals(1, tokens.get(1).getPosition().getLine());
+        }
+    }
+
+    @Test
+    public void positionJustNewline() throws IOException {
+        String code = "\n";
+        List<Token> tokens = new ArrayList<>();
+        try (Reader sR = new StringReader(code)){
+            ErrorManager eM = new ErrorManager();
+            CodeSource source = new CodeSource(sR, eM);
+            CodeLexer codeLexer = new CodeLexer(source, eM);
+            Token t;
+            while ((t = codeLexer.next()).getType() != TokenType.EOF)
+                tokens.add(t);
+            tokens.add(t); //EOF
+            assertEquals(1, tokens.size());
+            assertEquals(1, tokens.get(0).getPosition().getColumn());
+            assertEquals(2, tokens.get(0).getPosition().getLine());
+        }
+    }
+
+    @Test
+    public void positionValidNewlineNTest() throws IOException {
+        String code = "return\nvariable\nelse";
+        List<Token> tokens = new ArrayList<>();
+        try (Reader sR = new StringReader(code)){
+            ErrorManager eM = new ErrorManager();
+            CodeSource source = new CodeSource(sR, eM);
+            CodeLexer codeLexer = new CodeLexer(source, eM);
+            Token t;
+            while ((t = codeLexer.next()).getType() != TokenType.EOF)
+                tokens.add(t);
+            tokens.add(t); //EOF
+            assertEquals(4, tokens.size());
+            assertEquals(1, tokens.get(0).getPosition().getColumn());
+            assertEquals(1, tokens.get(0).getPosition().getLine());
+            assertEquals(1, tokens.get(1).getPosition().getColumn());
+            assertEquals(2, tokens.get(1).getPosition().getLine());
+            assertEquals(1, tokens.get(2).getPosition().getColumn());
+            assertEquals(3, tokens.get(2).getPosition().getLine());
+            assertEquals(5, tokens.get(3).getPosition().getColumn());
+            assertEquals(3, tokens.get(3).getPosition().getLine());
+        }
+    }
+
+    @Test
+    public void positionValidNewlineNRTest() throws IOException {
+        String code = "return\n\rvariable\n\relse";
+        List<Token> tokens = new ArrayList<>();
+        try (Reader sR = new StringReader(code)){
+            ErrorManager eM = new ErrorManager();
+            CodeSource source = new CodeSource(sR, eM);
+            CodeLexer codeLexer = new CodeLexer(source, eM);
+            Token t;
+            while ((t = codeLexer.next()).getType() != TokenType.EOF)
+                tokens.add(t);
+            tokens.add(t); //EOF
+            assertEquals(4, tokens.size());
+            assertEquals(1, tokens.get(0).getPosition().getColumn());
+            assertEquals(1, tokens.get(0).getPosition().getLine());
+            assertEquals(1, tokens.get(1).getPosition().getColumn());
+            assertEquals(2, tokens.get(1).getPosition().getLine());
+            assertEquals(1, tokens.get(2).getPosition().getColumn());
+            assertEquals(3, tokens.get(2).getPosition().getLine());
+            assertEquals(5, tokens.get(3).getPosition().getColumn());
+            assertEquals(3, tokens.get(3).getPosition().getLine());
+        }
+    }
+
+    @Test
+    public void positionValidNewlineRNTest() throws IOException {
+        String code = "return\r\nvariable\r\nelse";
+        List<Token> tokens = new ArrayList<>();
+        try (Reader sR = new StringReader(code)){
+            ErrorManager eM = new ErrorManager();
+            CodeSource source = new CodeSource(sR, eM);
+            CodeLexer codeLexer = new CodeLexer(source, eM);
+            Token t;
+            while ((t = codeLexer.next()).getType() != TokenType.EOF)
+                tokens.add(t);
+            tokens.add(t); //EOF
+            assertEquals(4, tokens.size());
+            assertEquals(1, tokens.get(0).getPosition().getColumn());
+            assertEquals(1, tokens.get(0).getPosition().getLine());
+            assertEquals(1, tokens.get(1).getPosition().getColumn());
+            assertEquals(2, tokens.get(1).getPosition().getLine());
+            assertEquals(1, tokens.get(2).getPosition().getColumn());
+            assertEquals(3, tokens.get(2).getPosition().getLine());
+            assertEquals(5, tokens.get(3).getPosition().getColumn());
+            assertEquals(3, tokens.get(3).getPosition().getLine());
+        }
+    }
+
+
+
+    @Test
+    public void invalidNewlineAfterNTest() throws IOException {
+        String codeN_NR = "something\nxd;;\n\r;";
+        try (Reader sR = new StringReader(codeN_NR)){
+            ErrorManager eM = new ErrorManager();
+            CodeSource source = new CodeSource(sR, eM);
+            CodeLexer codeLexer = new CodeLexer(source, eM);
+            //noinspection StatementWithEmptyBody
+            while ( (codeLexer.next()).getType() != TokenType.SEMICOLON);
+            assertThrows(CodeError.class, codeLexer::next);
+        }
+
+        String code = "something\nxd;;\r\n;";
+        try (Reader sR = new StringReader(code)){
+            ErrorManager eM = new ErrorManager();
+            CodeSource source = new CodeSource(sR, eM);
+            CodeLexer codeLexer = new CodeLexer(source, eM);
+            //noinspection StatementWithEmptyBody
+            while ( (codeLexer.next()).getType() != TokenType.SEMICOLON);
+            assertThrows(CodeError.class, codeLexer::next);
+        }
+    }
+
+    @Test
+    public void invalidNewlineAfterNRTest() throws IOException {
+        String codeN_NR = "something\n\rxd;;\n;";
+        try (Reader sR = new StringReader(codeN_NR)){
+            ErrorManager eM = new ErrorManager();
+            CodeSource source = new CodeSource(sR, eM);
+            CodeLexer codeLexer = new CodeLexer(source, eM);
+            //noinspection StatementWithEmptyBody
+            while ( (codeLexer.next()).getType() != TokenType.SEMICOLON);
+            assertThrows(CodeError.class, codeLexer::next);
+        }
+
+        String code = "something\n\rxd;;\r\n;";
+        try (Reader sR = new StringReader(code)){
+            ErrorManager eM = new ErrorManager();
+            CodeSource source = new CodeSource(sR, eM);
+            CodeLexer codeLexer = new CodeLexer(source, eM);
+            //noinspection StatementWithEmptyBody
+            while ( (codeLexer.next()).getType() != TokenType.SEMICOLON);
+            assertThrows(CodeError.class, codeLexer::next);
+        }
+    }
+
+    @Test
+    public void invalidNewlineAfterRNTest() throws IOException {
+//        String codeN_NR = "something\r\nxd;;\n;";
+//        try (Reader sR = new StringReader(codeN_NR)){
+//            ErrorManager eM = new ErrorManager();
+//            CodeSource source = new CodeSource(sR, eM);
+//            CodeLexer codeLexer = new CodeLexer(source, eM);
+//            //noinspection StatementWithEmptyBody
+//            while ( (codeLexer.next()).getType() != TokenType.SEMICOLON);
+//            assertThrows(CodeError.class, codeLexer::next);
+//        }
+
+        String code = "something\r\nxd;;\n\r;";
+        try (Reader sR = new StringReader(code)){
+            ErrorManager eM = new ErrorManager();
+            CodeSource source = new CodeSource(sR, eM);
+            CodeLexer codeLexer = new CodeLexer(source, eM);
+            //noinspection StatementWithEmptyBody
+            while ( (codeLexer.next()).getType() != TokenType.SEMICOLON);
+            assertThrows(CodeError.class, codeLexer::next);
         }
     }
 }
