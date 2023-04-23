@@ -1,7 +1,11 @@
 package org.example.source;
 
-public class Source {
-    public Source() {
+import java.io.IOException;
 
-    }
+public interface Source {
+
+    int EOF = -1;
+    char ETX = 3;
+    Position getPosition();
+    int nextCharacter() throws IOException;
 }
