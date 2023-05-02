@@ -196,7 +196,7 @@ public class CodeLexer implements Lexer {
         boolean isEraAC = "yYA".indexOf(character) != -1;
         if ("AB".indexOf(character) != -1 && !((character = source.nextCharacter()) == 'C')) {
             errorManager.reportError(
-                    new LexerErrorInfo(Severity.INFO, position, "Unexpected character while building date. Era must be either y, Y, AC or BC "));
+                    new LexerErrorInfo(Severity.WARN, position, "Unexpected character while building date. Era must be either y, Y, AC or BC "));
             currentToken = new IntToken(wholePart, position);
             return true;
         }
@@ -227,7 +227,7 @@ public class CodeLexer implements Lexer {
         if ((secondValue = getDateNumber("second")) < 0) return false;
         if (character != '\"') {
             errorManager.reportError(
-                    new LexerErrorInfo(Severity.INFO, position, "Unexpected character while building date. Seconds must be followed by \" "));
+                    new LexerErrorInfo(Severity.WARN, position, "Unexpected character while building date. Seconds must be followed by \" "));
             currentToken = new DateToken(new Date(isEraAC, wholePart, monthValue,
                     dayValue, hourValue, minuteValue, secondValue), position);
             return true;
