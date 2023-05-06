@@ -1,10 +1,14 @@
 package org.example;
 
 import org.example.error.ErrorManager;
+import org.example.error.LexerErrorInfo;
+import org.example.interpreter.PrinterVisitor;
 import org.example.lexer.CodeLexer;
 import org.example.lexer.CommentLexer;
-import org.example.token.*;
+import org.example.parser.Parser;
+import org.example.parser.Program;
 import org.example.source.CodeSource;
+import org.example.token.*;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.*;
@@ -25,27 +29,40 @@ public class Main {
             CodeSource source = new CodeSource(fileReader, eM);
             CodeLexer codeLexer = new CodeLexer(source, eM);
             CommentLexer commentLexer = new CommentLexer(codeLexer);
-            Token tok;
-            while ((tok = commentLexer.next()).getType() != TokenType.EOF) {
-                System.out.printf("%s \t%s%n",tok.getType().name(), tok.getPosition());
-                if (tok.getType() == TokenType.STRING){
-                    StringToken tok1 = (StringToken) tok;
-                    System.out.println(tok1.getValue());
-                } else if (tok.getType() == TokenType.DOUBLE){
-                    DoubleToken tok1 = (DoubleToken) tok;
-                    System.out.println(tok1.getValue());
-                } else if (tok.getType() == TokenType.INT){
-                    IntToken tok1 = (IntToken) tok;
-                    System.out.println(tok1.getValue());
-                } else if (tok.getType() == TokenType.IDENTIFIER){
-                    IdentifierToken tok1 = (IdentifierToken) tok;
-                    System.out.println(tok1.getName());
-                } else if (tok.getType() == TokenType.COMMENT){
-                    CommentToken tok1 = (CommentToken) tok;
-                    System.out.println(tok1.getValue());
-                }
-            }
-            System.out.printf("%s \t%s%n",tok.getType().name(), tok.getPosition());
+//            Token tok;
+//            while ((tok = commentLexer.next()).getType() != TokenType.EOF) {
+//                System.out.printf("%s \t%s%n",tok.getType().name(), tok.getPosition());
+//                if (tok.getType() == TokenType.STRING){
+//                    StringToken tok1 = (StringToken) tok;
+//                    System.out.println(tok1.getValue());
+//                } else if (tok.getType() == TokenType.DOUBLE){
+//                    DoubleToken tok1 = (DoubleToken) tok;
+//                    System.out.println(tok1.getValue());
+//                } else if (tok.getType() == TokenType.INT){
+//                    IntToken tok1 = (IntToken) tok;
+//                    System.out.println(tok1.getValue());
+//                } else if (tok.getType() == TokenType.IDENTIFIER){
+//                    IdentifierToken tok1 = (IdentifierToken) tok;
+//                    System.out.println(tok1.getName());
+//                } else if (tok.getType() == TokenType.COMMENT){
+//                    CommentToken tok1 = (CommentToken) tok;
+//                    System.out.println(tok1.getValue());
+//                }
+//            }
+//            System.out.printf("%s \t%s%n",tok.getType().name(), tok.getPosition());
+//            for (var err: eM.getErrors()){
+//                System.out.printf("%s %s %s %s\n",
+//                        err.getErrorStagePrefix(),
+//                        err.getPosition().toString(),
+//                        err.getSeverity().toString(),
+//                        err.getMessage());
+//            }
+
+
+            Parser parser = new Parser(commentLexer, eM);
+            Program program = parser.parse();
+            PrinterVisitor printer = new PrinterVisitor();
+            program.accept(printer);
         }
     }
 }
