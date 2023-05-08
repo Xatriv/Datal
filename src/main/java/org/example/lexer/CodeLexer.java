@@ -307,8 +307,10 @@ public class CodeLexer implements Lexer {
         character = source.nextCharacter();
         while (characterIsDigit(character) || Character.isAlphabetic(character)) {
             if (0 < identifierMaxLength && identifierMaxLength == sB.length()) {
-                errorManager.reportError(
-                        new LexerErrorInfo(Severity.ERROR, position, "Identifier too long"));
+                errorManager.reportError(new LexerErrorInfo(
+                        Severity.ERROR,
+                        position,
+                        String.format("Identifier too long (length > %d)", identifierMaxLength)));
                 return false;
             }
             sB.append(Character.toString(character));
@@ -329,8 +331,10 @@ public class CodeLexer implements Lexer {
         character = source.nextCharacter();
         while (character != '\n' && character != source.ETX) {
             if (0 < commentMaxLength && commentMaxLength == sB.length()) {
-                errorManager.reportError(
-                        new LexerErrorInfo(Severity.ERROR, position, "Comment too long"));
+                errorManager.reportError(new LexerErrorInfo(
+                        Severity.ERROR,
+                        position,
+                        String.format("Comment too long (length > %d)", commentMaxLength)));
                 return false;
             }
             sB.append(Character.toString(character));
@@ -351,8 +355,10 @@ public class CodeLexer implements Lexer {
                 return false;
             }
             if (0 < stringLiteralMaxLength && stringLiteralMaxLength == sB.length()) {
-                errorManager.reportError(
-                        new LexerErrorInfo(Severity.ERROR, position, "String too long"));
+                errorManager.reportError(new LexerErrorInfo(
+                        Severity.ERROR,
+                        position,
+                        String.format("String too long (length > %d)", stringLiteralMaxLength)));
                 return false;
             }
             sB.append(Character.toString(tryProcessEscapeCharacter()));

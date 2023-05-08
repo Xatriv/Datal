@@ -1,5 +1,4 @@
 package org.example.parser;
 
-public interface Statement {
-
+public interface Expression {
 }
