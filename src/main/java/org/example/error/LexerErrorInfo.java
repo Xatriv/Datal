@@ -8,7 +8,7 @@ import org.example.source.Position;
 public class LexerErrorInfo implements CodeErrorInfo {
     @Override
     public String getErrorStagePrefix() {
-        return "Lexical error.";
+        return "LEXICAL ERROR";
     }
     @Getter
     private final Severity severity;

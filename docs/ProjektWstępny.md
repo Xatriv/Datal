@@ -52,8 +52,10 @@ dayUnit         [0-9][dD]
 hourUnit        [0-9][hH]
 minuteUnit      [0-9]\'
 secondUnit      [0-9]\"
-addOp           [\+\-]
-multOp          [\*\\]
+plus            \+
+minus           \-
+multiply        \*
+divide          \\
 andOp           and
 orOp            or
 notOp           not
@@ -84,7 +86,9 @@ char            = ? every UTF-8 character ?;
 (*Non-terminal symbols*)
 specialSymbol   = addOp | multOp | assignOp | memberOp | "\\" | "!" | ":" | ";" | "'" | "\"" | "," | "" | "" 
                 | "(" | ")" | "[" | "]" | "{" | "}" | "<" | ">";
- 
+additiveOp      = plus | minus;
+multiplOp       = multiply | divide 
+negationOp      = notOp | minus; 
 
 stringChar      = escapeChar | char;
 stringLiteral   = strDelimL, {stringChar}, strDelimR;
@@ -113,8 +117,8 @@ simpleValue     = simpleLiteral
 objectValue     = objectLiteral
                 | identOrFuncCall;
  
-memberExpr      = objectValue, {memberOp, ident}, [assignOp, expr];
-negExpr         = [notOp], (memberExpr | simpleValue);
+memberExpr      = objectValue, {memberOp, identOrFuncCall}, [assignOp, expr];
+negExpr         = [negOp], (memberExpr | simpleValue);
 multExpr        = negExpr, {multOp, negExpr};
 addExpr         = multExpr, {addOp, multExpr};
 compExpr        = addExpr, [compOp, addExpr];

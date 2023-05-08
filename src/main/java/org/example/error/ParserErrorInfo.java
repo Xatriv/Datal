@@ -8,7 +8,7 @@ import org.example.source.Position;
 public class ParserErrorInfo implements CodeErrorInfo {
     @Override
     public String getErrorStagePrefix() {
-        return "Syntactic error.";
+        return "SYNTAX ERROR";
     }
     @Getter
     private final Severity severity;
