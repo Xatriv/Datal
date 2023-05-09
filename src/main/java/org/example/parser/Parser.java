@@ -4,9 +4,9 @@ import org.example.error.ErrorManager;
 import org.example.error.ParserErrorInfo;
 import org.example.error.Severity;
 import org.example.lexer.Lexer;
-import org.example.token.IdentifierToken;
-import org.example.token.Token;
-import org.example.token.TokenType;
+import org.example.program.*;
+import org.example.token.*;
+import org.example.types.Period;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -19,6 +19,7 @@ public class Parser {
     private final ErrorManager errorManager;
     private final int unknownTokensInARowLimit;
 
+    @SuppressWarnings("unused")
     private static final List<TokenType> comparativeTokens = Arrays.asList(
             TokenType.EQUALS, TokenType.NOT_EQUAL, TokenType.LESS_THAN, TokenType.MORE_THAN,
             TokenType.LESS_OR_EQUAL_THAN, TokenType.MORE_OR_EQUAL_THAN);
@@ -33,14 +34,14 @@ public class Parser {
         this.errorManager = errorManager;
 
         Properties props = new Properties();
-        int identifierMaxLengthProp = -1;
+        int unknownTokensInARowLimitProp = -1;
         try {
             InputStream input = new FileInputStream("src/main/java/org/example/parser/parser.properties");
             props.load(input);
-            identifierMaxLengthProp = readProperty(props, "UNKNOWN_TOKENS_IN_A_ROW_LIMIT", -1);
+            unknownTokensInARowLimitProp = readProperty(props, "UNKNOWN_TOKENS_IN_A_ROW_LIMIT", -1);
         } catch (IOException ignored) {
         } finally {
-            this.unknownTokensInARowLimit = identifierMaxLengthProp;
+            this.unknownTokensInARowLimit = unknownTokensInARowLimitProp;
         }
     }
 
@@ -60,13 +61,13 @@ public class Parser {
     public Program parse() throws IOException {
         nextToken();
         Hashtable<String, FunctionDef> functions = new Hashtable<>();
+        //noinspection StatementWithEmptyBody
         while (parseFunctionDef(functions))
             ;
         assert lexer.getToken().getType() == TokenType.EOF;
         return new Program(functions);
     }
 
-    @SuppressWarnings("UnusedReturnValue")
     private Token nextToken() throws IOException {
         lexer.next();
         int streak = 0;
@@ -99,6 +100,7 @@ public class Parser {
         return true;
     }
 
+    @SuppressWarnings("UnusedReturnValue")
     private boolean consumeIfExists(TokenType tokenType, String errorMessage) throws IOException {
         if (lexer.getToken().getType() != tokenType) {
             errorManager.reportError(new ParserErrorInfo(
@@ -112,18 +114,20 @@ public class Parser {
     }
 
     private boolean parseFunctionDef(Hashtable<String, FunctionDef> functions) throws IOException {
-        if (lexer.getToken().getType() != TokenType.IDENTIFIER) {
-            return false;
-        }
+        if (lexer.getToken().getType() != TokenType.IDENTIFIER) return false;
         String identifier = ((IdentifierToken) lexer.getToken()).getName();
         nextToken();
         consumeIfExists(TokenType.PARENTHESIS_L, "Missing opening parenthesis in function definition");
 
-        // TODO params
         List<Parameter> parameters = parseParameters();
         consumeIfExists(TokenType.PARENTHESIS_R, "Missing closing parenthesis in function definition");
-        // TODO block
         Block bodyBlock = parseBlock();
+        if (bodyBlock == null) {
+            errorManager.reportError(new ParserErrorInfo(
+                    Severity.ERROR,
+                    lexer.getToken().getPosition(),
+                    "Statement block missing in function definition"));
+        }
         if (functions.putIfAbsent(identifier, new FunctionDef(identifier, parameters, bodyBlock)) != null) {
             errorManager.reportError(
                     new ParserErrorInfo(
@@ -139,11 +143,7 @@ public class Parser {
         List<Parameter> parameters = new ArrayList<>();
         Parameter parameter = parseSingleParameter();
         if (parameter == null) {
-            errorManager.reportError(
-                    new ParserErrorInfo(
-                            Severity.ERROR,
-                            lexer.getToken().getPosition(),
-                            "Identifier expected"));
+            return null;
         }
         while (consumeIfExists(TokenType.SEPARATOR)) {
             parameter = parseSingleParameter();
@@ -179,9 +179,7 @@ public class Parser {
     }
 
     private Block parseBlock() throws IOException {
-        if (!consumeIfExists(TokenType.BLOCK_DELIMITER_L)) {
-            return null;
-        }
+        if (!consumeIfExists(TokenType.BLOCK_DELIMITER_L)) return null;
         List<Statement> statements = new ArrayList<>();
         Statement statement;
         while ((statement = parseStatement()) != null) {
@@ -199,22 +197,21 @@ public class Parser {
 
 
     private Statement parseStatement() throws IOException {
-        if (lexer.getToken().getType() == TokenType.BLOCK_DELIMITER_R) { // TODO this is very wrong
-            return null;
+        Expression expression = parseExpression();
+        if (expression != null) {
+            consumeIfExists(TokenType.SEMICOLON, "Semicolon missing at the end of expression statement");
+            return new ExpressionStatement(expression);
         }
-        nextToken();
         IfStatement ifStatement = parseIfStatement();
         if (ifStatement != null) return ifStatement;
         WhileStatement forStatement = parseWhileStatement();
         if (forStatement != null) return forStatement;
-        return null; //can be removed
+        return parseReturnStatement();
     }
 
 
     private IfStatement parseIfStatement() throws IOException {
-        if (consumeIfExists(TokenType.IF)) {
-            return null;
-        }
+        if (!consumeIfExists(TokenType.IF)) return null;
         consumeIfExists(TokenType.PARENTHESIS_L, "Opening parenthesis expected.");
         Expression condition = parseExpression();
         if (condition == null) {
@@ -226,21 +223,24 @@ public class Parser {
         }
         consumeIfExists(TokenType.PARENTHESIS_L, "Closing parenthesis expected.");
         Block ifBlock = parseBlock();
-        Block elseBlock = lexer.getToken().getType() == TokenType.ELSE ? parseBlock() : null;
-
+        Block elseBlock;
+        if (lexer.getToken().getType() == TokenType.ELSE){
+            nextToken();
+            elseBlock = parseBlock();
+        } else {
+            elseBlock = null;
+        }
         return new IfStatement(condition, ifBlock, elseBlock);
     }
 
     private WhileStatement parseWhileStatement() throws IOException {
-        if (consumeIfExists(TokenType.WHILE)) {
-            return null;
-        }
+        if (!consumeIfExists(TokenType.WHILE)) return null;
         Expression condition = parseExpression();
         if (condition == null) {
             errorManager.reportError(new ParserErrorInfo(
                     Severity.ERROR,
                     lexer.getToken().getPosition(),
-                    "Exit condition expected in while statement."
+                    "Exit condition missing in while statement."
             ));
         }
         consumeIfExists(TokenType.PARENTHESIS_L, "Closing parenthesis expected.");
@@ -249,7 +249,17 @@ public class Parser {
     }
 
     private ReturnStatement parseReturnStatement() throws IOException {
-        return null; //TODO
+        if (!consumeIfExists(TokenType.RETURN)) return null;
+        Expression expression = parseExpression();
+        if (expression == null) {
+            errorManager.reportError(new ParserErrorInfo(
+                    Severity.ERROR,
+                    lexer.getToken().getPosition(),
+                    "Expression missing in return statement."
+            ));
+        }
+        consumeIfExists(TokenType.SEMICOLON);
+        return new ReturnStatement(expression);
     }
 
     private Expression parseExpression() throws IOException {
@@ -295,7 +305,7 @@ public class Parser {
         Expression left = parseAdditiveExpression();
         if (left == null) return null;
         ComparisonOperator operator;
-        switch (nextToken().getType()) {
+        switch (lexer.getToken().getType()) {
             case EQUALS:
                 operator = ComparisonOperator.EQUALS;
                 break;
@@ -332,11 +342,11 @@ public class Parser {
     private Expression parseAdditiveExpression() throws IOException {
         Expression left = parseMultiplicativeExpression();
         if (left == null) return null;
-
         while (additiveTokens.contains(lexer.getToken().getType())) {
             AdditiveOperator operator = lexer.getToken().getType() == TokenType.PLUS
                     ? AdditiveOperator.PLUS
                     : AdditiveOperator.MINUS;
+            nextToken();
             Expression right = parseMultiplicativeExpression();
             if (right == null) {
                 errorManager.reportError(new ParserErrorInfo(
@@ -358,6 +368,7 @@ public class Parser {
             MultiplicativeOperator operator = lexer.getToken().getType() == TokenType.MULTIPLY
                     ? MultiplicativeOperator.MULTIPLY
                     : MultiplicativeOperator.DIVIDE;
+            nextToken();
             Expression right = parseNegationExpression();
             if (right == null) {
                 errorManager.reportError(new ParserErrorInfo(
@@ -377,10 +388,14 @@ public class Parser {
             operator = lexer.getToken().getType() == TokenType.MINUS
                     ? NegationOperator.MINUS
                     : NegationOperator.NOT;
+            nextToken();
         } else {
             operator = null;
         }
         Expression expression = parseMemberExpression();
+        if (expression == null) {
+            expression = parseSimpleValue();
+        }
         if (operator != null && expression == null) {
             errorManager.reportError(new ParserErrorInfo(
                     Severity.ERROR,
@@ -395,7 +410,7 @@ public class Parser {
     }
 
     private Expression parseMemberExpression() throws IOException {
-        Expression left = parseObjectLiteral();
+        Expression left = parseObjectValue();
         if (left == null) {
             left = parseIdentifierOrFunctionCall();
             if (left == null) return null;
@@ -409,17 +424,69 @@ public class Parser {
                         "Member access expression is missing right operand"
                 ));
             }
-            left = new AndExpression(left, right);
+            left = new MemberExpression(left, right);
         }
         return left;
     }
 
     private Expression parseSimpleLiteral() throws IOException {
-        return null; //TODO
+        switch (lexer.getToken().getType()) {
+            case INT:
+                Expression intLiteral = new IntLiteralExpression(((IntToken) lexer.getToken()).getValue());
+                nextToken();
+                return intLiteral;
+            case STRING:
+                Expression stringLiteral = new StringLiteralExpression(((StringToken) lexer.getToken()).getValue());
+                nextToken();
+                return stringLiteral;
+            case DOUBLE:
+                Expression doubleLiteral = new DoubleLiteralExpression(((DoubleToken) lexer.getToken()).getValue());
+                nextToken();
+                return doubleLiteral;
+        }
+        return null;
+    }
+
+    private Expression parseSimpleValue() throws IOException {
+        Expression simpleLiteral = parseSimpleLiteral();
+        if (simpleLiteral != null) return simpleLiteral;
+        if (!consumeIfExists(TokenType.PARENTHESIS_L)) {
+            return null;
+        }
+        Expression expression = parseExpression();
+        if (expression == null) {
+            errorManager.reportError(new ParserErrorInfo(
+                    Severity.ERROR,
+                    lexer.getToken().getPosition(),
+                    "Expression expected inside parenthesized expression"
+            ));
+        }
+        consumeIfExists(TokenType.PARENTHESIS_R, "Missing closing parenthesis in parenthesized expression");
+        return expression;
+    }
+
+    private Expression parseObjectValue() throws IOException {
+        Expression objectLiteral = parseObjectLiteral();
+        if (objectLiteral != null) return objectLiteral;
+        return parseIdentifierOrFunctionCall();
     }
 
     private Expression parseObjectLiteral() throws IOException {
-        return null; //TODO
+        switch (lexer.getToken().getType()) {
+            case DATE:
+                Expression dateLiteral = new DateLiteralExpression(((DateToken) lexer.getToken()).getValue());
+                nextToken();
+                return dateLiteral;
+            case PERIOD:
+                List<Period> periods = new ArrayList<>(Collections.singletonList(
+                        ((PeriodToken) lexer.getToken()).getValue()));
+                while (nextToken().getType() == TokenType.PERIOD) {
+                    periods.add(((PeriodToken) lexer.getToken()).getValue());
+                    nextToken();
+                }
+                return new PeriodLiteralExpression(periods);
+        }
+        return null;
     }
 
     private Expression parseIdentifierOrFunctionCall() throws IOException {
@@ -428,34 +495,27 @@ public class Parser {
         nextToken();
 
         Expression expression = parseFunctionCall(name);
-        if (expression == null){
+        if (expression == null) {
             return new IdentifierExpression(name);
         }
         return expression;
     }
 
     private Expression parseFunctionCall(String name) throws IOException {
-        if (!consumeIfExists(TokenType.PARENTHESIS_L)){
-            return null;
-        }
+        if (!consumeIfExists(TokenType.PARENTHESIS_L)) return null;
         List<Expression> arguments = parseArguments();
         consumeIfExists(TokenType.PARENTHESIS_R, "Missing closing parenthesis in function call");
         return new FunctionCallExpression(name, arguments);
-
     }
 
     private List<Expression> parseArguments() throws IOException {
         List<Expression> arguments = new ArrayList<>();
         Expression expression = parseExpression();
-        while (expression != null){
+        while (expression != null) {
             nextToken();
             arguments.add(expression);
             expression = parseExpression();
         }
         return arguments;
-    };
-
-    //TODO parsing durationLiteral needs to be done without semantic limits. Rewrite durationLiteral ebnf to durationUnit, {durationUnit}
-
-
+    }
 }

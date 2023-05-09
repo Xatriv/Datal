@@ -1,9 +1,9 @@
-package org.example.parser;
+package org.example.program;
 
 import lombok.AllArgsConstructor;
+
 @AllArgsConstructor
-public class ComparativeExpression implements Expression{
-    ComparisonOperator operator;
+public class OrExpression implements Expression{
     Expression leftExpression;
     Expression rightExpression;
 }

@@ -1,6 +1,6 @@
-package org.example.parser;
+package org.example.program;
 
-import org.example.interpreter.ProgramVisitor;
+import org.example.parser.Visitable;
 
 import java.util.Hashtable;
 

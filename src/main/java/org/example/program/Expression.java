@@ -1,4 +1,4 @@
-package org.example.parser;
+package org.example.program;
 
 public interface Expression {
 }

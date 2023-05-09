@@ -1,6 +1,8 @@
 package org.example.interpreter;
 
-public class Interpreter implements ProgramVisitor{
+import org.example.program.ProgramVisitor;
+
+public class Interpreter implements ProgramVisitor {
 
     @Override
     public void visit() {

@@ -1,14 +1,12 @@
 package org.example;
 
 import org.example.error.ErrorManager;
-import org.example.error.LexerErrorInfo;
 import org.example.interpreter.PrinterVisitor;
 import org.example.lexer.CodeLexer;
 import org.example.lexer.CommentLexer;
 import org.example.parser.Parser;
-import org.example.parser.Program;
+import org.example.program.Program;
 import org.example.source.CodeSource;
-import org.example.token.*;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.*;
