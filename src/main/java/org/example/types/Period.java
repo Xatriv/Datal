@@ -1,7 +1,6 @@
 package org.example.types;
 
 import lombok.*;
-import lombok.experimental.Accessors;
 
 @Getter
 @Setter
@@ -19,4 +18,8 @@ public class Period {
     private int minute;
     @Getter
     private int second;
+    @Override
+    public String toString() {
+        return year + "."  + month + "." + day + " " + hour + ":" + minute + ":" + second;
+    }
 }

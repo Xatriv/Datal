@@ -14,6 +14,6 @@ public class Program implements Visitable {
     }
 
     public void accept(ProgramVisitor visitor) {
-        visitor.visit();
+        visitor.visit(this);
     }
 }

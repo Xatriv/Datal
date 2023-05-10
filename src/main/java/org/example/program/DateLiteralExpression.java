@@ -8,4 +8,8 @@ import org.example.types.Date;
 public class DateLiteralExpression implements Expression{
     @Getter
     Date value;
+    @Override
+    public void accept(ProgramVisitor programVisitor) {
+        programVisitor.visit(this);
+    }
 }

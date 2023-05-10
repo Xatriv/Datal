@@ -11,4 +11,9 @@ public class FunctionCallExpression implements Expression {
     String name;
     @Getter
     List<Expression> arguments;
+
+    @Override
+    public void accept(ProgramVisitor programVisitor) {
+        programVisitor.visit(this);
+    }
 }

@@ -7,4 +7,8 @@ import lombok.Getter;
 public class IntLiteralExpression implements Expression{
     @Getter
     int value;
+    @Override
+    public void accept(ProgramVisitor programVisitor) {
+        programVisitor.visit(this);
+    }
 }

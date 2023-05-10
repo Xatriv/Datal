@@ -9,4 +9,9 @@ public class NegationExpression implements Expression{
     NegationOperator operator;
     @Getter
     Expression expression;
+
+    @Override
+    public void accept(ProgramVisitor programVisitor) {
+        programVisitor.visit(this);
+    }
 }

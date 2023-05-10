@@ -7,4 +7,9 @@ import lombok.Getter;
 public class IdentifierExpression implements Expression {
     @Getter
     String name;
+
+    @Override
+    public void accept(ProgramVisitor programVisitor) {
+        programVisitor.visit(this);
+    }
 }

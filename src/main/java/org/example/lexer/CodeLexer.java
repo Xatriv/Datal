@@ -193,12 +193,16 @@ public class CodeLexer implements Lexer {
     }
 
     private boolean tryBuildYearPeriodOrDate(int wholePart) throws IOException {
-        boolean isEraAC = "yYA".indexOf(character) != -1;
-        if ("AB".indexOf(character) != -1 && !((character = source.nextCharacter()) == 'C')) {
-            errorManager.reportError(
-                    new LexerErrorInfo(Severity.WARN, position, "Unexpected character while building date. Era must be either y, Y, AC or BC "));
-            currentToken = new IntToken(wholePart, position);
-            return true;
+        boolean isEraAD = "yYA".indexOf(character) != -1;
+        if ("AB".indexOf(character) != -1){
+            int firstEraChar = character;
+            int secondEraChar = source.nextCharacter();
+            if ((firstEraChar == 'A' && secondEraChar != 'D') || (firstEraChar == 'B' && secondEraChar != 'C')){
+                errorManager.reportError(
+                        new LexerErrorInfo(Severity.WARN, position, "Unexpected character while building date. Era must be either y, Y, AD or BC "));
+                currentToken = new IntToken(wholePart, position);
+                return true;
+            }
         }
         if (!((character = source.nextCharacter()) == ':')) {
             currentToken = new PeriodToken(new Period(wholePart, 0, 0, 0, 0, 0), position);
@@ -228,12 +232,12 @@ public class CodeLexer implements Lexer {
         if (character != '\"') {
             errorManager.reportError(
                     new LexerErrorInfo(Severity.WARN, position, "Unexpected character while building date. Seconds must be followed by \" "));
-            currentToken = new DateToken(new Date(isEraAC, wholePart, monthValue,
+            currentToken = new DateToken(new Date(isEraAD, wholePart, monthValue,
                     dayValue, hourValue, minuteValue, secondValue), position);
             return true;
         }
         character = source.nextCharacter();
-        currentToken = new DateToken(new Date(isEraAC, wholePart, monthValue,
+        currentToken = new DateToken(new Date(isEraAD, wholePart, monthValue,
                 dayValue, hourValue, minuteValue, secondValue), position);
         return true;
     }

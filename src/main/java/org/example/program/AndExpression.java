@@ -9,4 +9,9 @@ public class AndExpression implements Expression{
     Expression rightExpression;
     @Getter
     Expression leftExpression;
+
+    @Override
+    public void accept(ProgramVisitor programVisitor) {
+        programVisitor.visit(this);
+    }
 }

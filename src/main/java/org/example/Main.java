@@ -61,6 +61,8 @@ public class Main {
             Program program = parser.parse();
             PrinterVisitor printer = new PrinterVisitor();
             program.accept(printer);
+            System.out.println("Errors: ");
+            eM.printErrors();
         }
     }
 }

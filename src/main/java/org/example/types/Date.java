@@ -3,14 +3,13 @@ package org.example.types;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
-import lombok.experimental.Accessors;
 
 @Getter
 @Setter
 @AllArgsConstructor
 public class Date {
     @Getter
-    private boolean isAC;
+    private boolean isAD;
     @Getter
     private int year;
     @Getter
@@ -23,4 +22,8 @@ public class Date {
     private int minute;
     @Getter
     private int second;
+    @Override
+    public String toString() {
+        return (isAD ? "AD " : "BC ") + year + "."  + month + "." + day + " " + hour + ":" + minute + ":" + second;
+    }
 }

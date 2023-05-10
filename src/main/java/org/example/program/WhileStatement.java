@@ -9,4 +9,9 @@ public class WhileStatement implements Statement {
     Expression condition;
     @Getter
     Block loopBlock;
+
+    @Override
+    public void accept(ProgramVisitor programVisitor) {
+        programVisitor.visit(this);
+    }
 }

@@ -9,4 +9,8 @@ public class AssignmentExpression implements Expression{
     Expression left;
     @Getter
     Expression right;
+    @Override
+    public void accept(ProgramVisitor programVisitor) {
+        programVisitor.visit(this);
+    }
 }

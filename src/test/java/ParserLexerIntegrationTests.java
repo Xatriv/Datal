@@ -9,12 +9,9 @@ import org.example.types.Date;
 import org.example.types.Period;
 import org.junit.jupiter.api.Test;
 
-import javax.swing.plaf.nimbus.State;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -78,12 +75,12 @@ public class ParserLexerIntegrationTests {
             Program program = parser.parse();
             Block block = new Block(List.of());
             FunctionDef fun = new FunctionDef("fun1", List.of(), block);
-            Parameter param = new Parameter("param1");
+            String param = "param1";
             assertEquals(1, program.getFunctions().size());
             assertEquals(fun.getName(), program.getFunctions().get(fun.getName()).getName());
             assertEquals(0, program.getFunctions().get(fun.getName()).getBody().getStatements().size());
             assertEquals(1, program.getFunctions().get(fun.getName()).getParameters().size());
-            assertEquals(param.getName(), program.getFunctions().get(fun.getName()).getParameters().get(0).getName());
+            assertEquals(param, program.getFunctions().get(fun.getName()).getParameters().get(0));
         }
     }
 
@@ -98,18 +95,18 @@ public class ParserLexerIntegrationTests {
             Program program = parser.parse();
             Block block = new Block(List.of());
             FunctionDef fun = new FunctionDef("fun1", List.of(), block);
-            Parameter param1 = new Parameter("param1");
-            Parameter param2 = new Parameter("param2");
-            Parameter param3 = new Parameter("param3");
-            Parameter param4 = new Parameter("param4");
+            String param1 = "param1";
+            String param2 = "param2";
+            String param3 = "param3";
+            String param4 = "param4";
             assertEquals(1, program.getFunctions().size());
             assertEquals(fun.getName(), program.getFunctions().get(fun.getName()).getName());
             assertEquals(0, program.getFunctions().get(fun.getName()).getBody().getStatements().size());
             assertEquals(4, program.getFunctions().get(fun.getName()).getParameters().size());
-            assertEquals(param1.getName(), program.getFunctions().get(fun.getName()).getParameters().get(0).getName());
-            assertEquals(param2.getName(), program.getFunctions().get(fun.getName()).getParameters().get(1).getName());
-            assertEquals(param3.getName(), program.getFunctions().get(fun.getName()).getParameters().get(2).getName());
-            assertEquals(param4.getName(), program.getFunctions().get(fun.getName()).getParameters().get(3).getName());
+            assertEquals(param1, program.getFunctions().get(fun.getName()).getParameters().get(0));
+            assertEquals(param2, program.getFunctions().get(fun.getName()).getParameters().get(1));
+            assertEquals(param3, program.getFunctions().get(fun.getName()).getParameters().get(2));
+            assertEquals(param4, program.getFunctions().get(fun.getName()).getParameters().get(3));
         }
     }
 
@@ -141,12 +138,12 @@ public class ParserLexerIntegrationTests {
             Program program = parser.parse();
             Block block = new Block(List.of());
             FunctionDef fun = new FunctionDef("fun1", List.of(), block);
-            Parameter param1 = new Parameter("param1");
+            String param1 = "param1";
             assertEquals(1, program.getFunctions().size());
             assertEquals(fun.getName(), program.getFunctions().get(fun.getName()).getName());
             assertEquals(0, program.getFunctions().get(fun.getName()).getBody().getStatements().size());
             assertEquals(1, program.getFunctions().get(fun.getName()).getParameters().size());
-            assertEquals(param1.getName(), program.getFunctions().get(fun.getName()).getParameters().get(0).getName());
+            assertEquals(param1, program.getFunctions().get(fun.getName()).getParameters().get(0));
         }
     }
 
@@ -375,7 +372,7 @@ public class ParserLexerIntegrationTests {
                             .getStatements()
                             .get(1)
             ).getExpression()).getValue();
-            assertTrue(date.isAC());
+            assertTrue(date.isAD());
             assertEquals(2022, date.getYear());
             assertEquals(1, date.getMonth());
             assertEquals(2, date.getDay());
@@ -790,13 +787,13 @@ public class ParserLexerIntegrationTests {
             assertEquals(AssignmentExpression.class.getName(), ifBlockExpression.getClass().getName());
             assertEquals(FunctionCallExpression.class.getName(), elseBlockExpression.getClass().getName());
             assertEquals(IntLiteralExpression.class.getName(), condition.getClass().getName());
-            assertEquals(1, eM.getErrors().size());
+            assertEquals(0, eM.getErrors().size());
         }
     }
 
     @Test
     public void WhileStatementTest() throws IOException {
-        String code = "fun1() {while (1) {print([Hello])}}";
+        String code = "fun1() {while (1) {print([Hello]);}}";
         try (Reader sR = new StringReader(code)) {
             ErrorManager eM = new ErrorManager();
             CodeSource source = new CodeSource(sR, eM);
@@ -816,7 +813,7 @@ public class ParserLexerIntegrationTests {
             assertEquals(fun.getName(), program.getFunctions().get(fun.getName()).getName());
             assertEquals(FunctionCallExpression.class.getName(), expression.getClass().getName());
             assertEquals(IntLiteralExpression.class.getName(), condition.getClass().getName());
-            assertEquals(3, eM.getErrors().size());
+            assertEquals(0, eM.getErrors().size());
         }
     }
 

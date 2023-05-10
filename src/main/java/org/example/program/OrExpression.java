@@ -9,4 +9,9 @@ public class OrExpression implements Expression{
     Expression leftExpression;
     @Getter
     Expression rightExpression;
+
+    @Override
+    public void accept(ProgramVisitor programVisitor) {
+        programVisitor.visit(this);
+    }
 }

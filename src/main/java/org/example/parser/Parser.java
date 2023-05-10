@@ -20,15 +20,6 @@ public class Parser {
     private final ErrorManager errorManager;
     private final int unknownTokensInARowLimit;
 
-    @SuppressWarnings("unused")
-    private static final List<TokenType> comparativeTokens = Arrays.asList(
-            TokenType.EQUALS, TokenType.NOT_EQUAL, TokenType.LESS_THAN, TokenType.MORE_THAN,
-            TokenType.LESS_OR_EQUAL_THAN, TokenType.MORE_OR_EQUAL_THAN);
-
-    private static final List<TokenType> additiveTokens = Arrays.asList(TokenType.PLUS, TokenType.MINUS);
-    private static final List<TokenType> multiplicativeTokens = Arrays.asList(TokenType.MULTIPLY, TokenType.DIVIDE);
-    private static final List<TokenType> negationTokens = Arrays.asList(TokenType.MINUS, TokenType.NOT);
-
 
     public Parser(Lexer lexer, ErrorManager errorManager) {
         Parser.lexer = lexer;
@@ -62,9 +53,16 @@ public class Parser {
     public Program parse() throws IOException {
         nextToken();
         Hashtable<String, FunctionDef> functions = new Hashtable<>();
-        //noinspection StatementWithEmptyBody
-        while (parseFunctionDef(functions))
-            ;
+        FunctionDef function;
+        while ( (function = parseFunctionDef()) != null){
+            if (functions.putIfAbsent(function.getName(), function) != null) { //TODO functionDef (or Expression) should store position (at line x redefined function from line y)
+                errorManager.reportError(
+                        new ParserErrorInfo(
+                                Severity.ERROR,
+                                lexer.getToken().getPosition(),
+                                String.format("Non-unique function identifier (%s)", function.getName())));
+            }
+        }
         if (lexer.getToken().getType() != TokenType.EOF){
             errorManager.reportError(new ParserErrorInfo(
                     Severity.ERROR,
@@ -85,20 +83,21 @@ public class Parser {
         }
         int streak = 0;
         while (lexer.getToken().getType() == TokenType.UNKNOWN || lexer.getToken().getType() == TokenType.COMMENT) {
-            streak++;
             if (unknownTokensInARowLimit < 0) {
                 lexer.next();
                 continue;
-            } else if (unknownTokensInARowLimit == streak) {
+            }
+            if (lexer.getToken().getType() == TokenType.COMMENT) {
+                streak = 0;
+            } else {
+                streak++;
+            }
+            if (unknownTokensInARowLimit < streak) {
                 errorManager.reportError(new ParserErrorInfo(
                         Severity.ERROR,
                         lexer.getToken().getPosition(),
                         String.format("Too many unknown tokens in a row (>%s)", unknownTokensInARowLimit)
                 ));
-            } else if (lexer.getToken().getType() == TokenType.COMMENT) {
-                streak = 0;
-            } else {
-                streak++;
             }
             lexer.next();
         }
@@ -126,13 +125,13 @@ public class Parser {
         return true;
     }
 
-    private boolean parseFunctionDef(Hashtable<String, FunctionDef> functions) throws IOException {
-        if (lexer.getToken().getType() != TokenType.IDENTIFIER) return false;
+    private FunctionDef parseFunctionDef() throws IOException {
+        if (lexer.getToken().getType() != TokenType.IDENTIFIER) return null;
         String identifier = ((IdentifierToken) lexer.getToken()).getName();
         nextToken();
         consumeIfExists(TokenType.PARENTHESIS_L, "Missing opening parenthesis in function definition");
 
-        List<Parameter> parameters = parseParameters();
+        List<String> parameters = parseParameters();
         if (!consumeIfExists(TokenType.PARENTHESIS_R)) {
             errorManager.reportError(
                     new ParserErrorInfo(
@@ -147,20 +146,12 @@ public class Parser {
                     lexer.getToken().getPosition(),
                     "Missing statement block in function definition"));
         }
-        if (functions.putIfAbsent(identifier, new FunctionDef(identifier, parameters, bodyBlock)) != null) {
-            errorManager.reportError(
-                    new ParserErrorInfo(
-                            Severity.ERROR,
-                            lexer.getToken().getPosition(),
-                            String.format("Non-unique function identifier (%s)", identifier)));
-            return false;
-        }
-        return true;
+        return new FunctionDef(identifier, parameters, bodyBlock);
     }
 
-    private List<Parameter> parseParameters() throws IOException {
-        List<Parameter> parameters = new ArrayList<>();
-        Parameter parameter = parseSingleParameter();
+    private List<String> parseParameters() throws IOException {
+        List<String> parameters = new ArrayList<>();
+        String parameter = parseSingleParameter();
         if (parameter == null) {
             return parameters;
         }
@@ -174,13 +165,13 @@ public class Parser {
                                 lexer.getToken().getPosition(),
                                 "Parameter expected after a separator"));
             } else {
-                String parameterName = parameter.getName();
-                if (parameters.stream().anyMatch(p -> p.getName().equals(parameterName))) {
+                String parameterName = parameter;
+                if (parameters.stream().anyMatch(p -> p.equals(parameterName))) {
                     errorManager.reportError(
                             new ParserErrorInfo(
                                     Severity.ERROR,
                                     lexer.getToken().getPosition(),
-                                    String.format("Parameter name already exists (%s)", parameter.getName())));
+                                    String.format("Parameter name already exists (%s)", parameter)));
                 } else {
                     parameters.add(parameter);
                 }
@@ -189,13 +180,13 @@ public class Parser {
         return parameters;
     }
 
-    private Parameter parseSingleParameter() throws IOException {
+    private String parseSingleParameter() throws IOException {
         if (lexer.getToken().getType() != TokenType.IDENTIFIER) {
             return null;
         }
         String identifier = ((IdentifierToken) lexer.getToken()).getName();
         nextToken();
-        return new Parameter(identifier);
+        return identifier;
     }
 
     private Block parseBlock() throws IOException {
@@ -208,7 +199,7 @@ public class Parser {
         if (lexer.getToken().getType() != TokenType.BLOCK_DELIMITER_R) {
             errorManager.reportError(
                     new ParserErrorInfo(
-                            Severity.ERROR,
+                            Severity.WARN,
                             lexer.getToken().getPosition(),
                             "Closing brace missing"));
         }
@@ -233,7 +224,7 @@ public class Parser {
 
     private IfStatement parseIfStatement() throws IOException {
         if (!consumeIfExists(TokenType.IF)) return null;
-        consumeIfExists(TokenType.PARENTHESIS_L, "Opening parenthesis expected.");
+        consumeIfExists(TokenType.PARENTHESIS_L, "Opening parenthesis expected in if statement");
         Expression condition = parseExpression();
         if (condition == null) {
             errorManager.reportError(new ParserErrorInfo(
@@ -242,12 +233,26 @@ public class Parser {
                     "Exit condition expected in if statement."
             ));
         }
-        consumeIfExists(TokenType.PARENTHESIS_R, "Closing parenthesis expected.");
+        consumeIfExists(TokenType.PARENTHESIS_R, "Closing parenthesis expected in if statement");
         Block ifBlock = parseBlock();
+        if (ifBlock == null){
+            errorManager.reportError(new ParserErrorInfo(
+                    Severity.ERROR,
+                    lexer.getToken().getPosition(),
+                    "Block missing after IF"
+            ));
+        }
         Block elseBlock;
         if (lexer.getToken().getType() == TokenType.ELSE) {
             nextToken();
             elseBlock = parseBlock();
+            if (elseBlock == null){
+                errorManager.reportError(new ParserErrorInfo(
+                        Severity.ERROR,
+                        lexer.getToken().getPosition(),
+                        "Block missing after ELSE"
+                ));
+            }
         } else {
             elseBlock = null;
         }
@@ -256,6 +261,7 @@ public class Parser {
 
     private WhileStatement parseWhileStatement() throws IOException {
         if (!consumeIfExists(TokenType.WHILE)) return null;
+        consumeIfExists(TokenType.PARENTHESIS_L, "Opening parenthesis expected in while statement");
         Expression condition = parseExpression();
         if (condition == null) {
             errorManager.reportError(new ParserErrorInfo(
@@ -264,7 +270,7 @@ public class Parser {
                     "Exit condition missing in while statement."
             ));
         }
-        consumeIfExists(TokenType.PARENTHESIS_L, "Closing parenthesis expected.");
+        consumeIfExists(TokenType.PARENTHESIS_R, "Closing parenthesis expected in while statement");
         Block loopBlock = parseBlock();
         return new WhileStatement(condition, loopBlock);
     }
@@ -300,7 +306,6 @@ public class Parser {
                 ));
             }
             left = new OrExpression(left, right);
-
         }
         return left;
     }
@@ -363,10 +368,8 @@ public class Parser {
     private Expression parseAdditiveExpression() throws IOException {
         Expression left = parseMultiplicativeExpression();
         if (left == null) return null;
-        while (additiveTokens.contains(lexer.getToken().getType())) {
-            AdditiveOperator operator = lexer.getToken().getType() == TokenType.PLUS
-                    ? AdditiveOperator.PLUS
-                    : AdditiveOperator.MINUS;
+        AdditiveOperator operator;
+        while ((operator = getIfAdditiveOperator()) != null ) {
             nextToken();
             Expression right = parseMultiplicativeExpression();
             if (right == null) {
@@ -381,14 +384,21 @@ public class Parser {
         return left;
     }
 
+    private AdditiveOperator getIfAdditiveOperator(){
+        switch (lexer.getToken().getType()){
+            case PLUS:
+                return AdditiveOperator.PLUS;
+            case MINUS:
+                return AdditiveOperator.MINUS;
+        }
+        return null;
+    }
+
     private Expression parseMultiplicativeExpression() throws IOException {
         Expression left = parseNegationExpression();
         if (left == null) return null;
-
-        while (multiplicativeTokens.contains(lexer.getToken().getType())) {
-            MultiplicativeOperator operator = lexer.getToken().getType() == TokenType.MULTIPLY
-                    ? MultiplicativeOperator.MULTIPLY
-                    : MultiplicativeOperator.DIVIDE;
+        MultiplicativeOperator operator;
+        while ((operator = getIfMultiplicativeOperator()) != null) {
             nextToken();
             Expression right = parseNegationExpression();
             if (right == null) {
@@ -403,17 +413,22 @@ public class Parser {
         return left;
     }
 
+    private MultiplicativeOperator getIfMultiplicativeOperator(){
+        switch (lexer.getToken().getType()){
+            case MULTIPLY:
+                return MultiplicativeOperator.MULTIPLY;
+            case DIVIDE:
+                return MultiplicativeOperator.DIVIDE;
+        }
+        return null;
+    }
+
     private Expression parseNegationExpression() throws IOException {
         NegationOperator operator;
-        if (negationTokens.contains(lexer.getToken().getType())) {
-            operator = lexer.getToken().getType() == TokenType.MINUS
-                    ? NegationOperator.MINUS
-                    : NegationOperator.NOT;
+        if ((operator = getIfNegationOperator()) != null) {
             nextToken();
-        } else {
-            operator = null;
         }
-        Expression expression = parseAssignment();
+        Expression expression = parseAssignmentExpression();
         if (expression == null) {
             expression = parseSimpleValue();
         }
@@ -430,12 +445,19 @@ public class Parser {
         return expression;
     }
 
-    private Expression parseAssignment() throws IOException {
-        Expression left = parseMemberExpression();
-        if (left == null) {
-            left = parseIdentifierOrFunctionCall();
-            if (left == null) return null;
+    private NegationOperator getIfNegationOperator(){
+        switch (lexer.getToken().getType()){
+            case MINUS:
+                return NegationOperator.MINUS;
+            case NOT:
+                return NegationOperator.NOT;
         }
+        return null;
+    }
+
+    private Expression parseAssignmentExpression() throws IOException {
+        Expression left = parseMemberExpression();
+        if (left == null) return null;
         if (consumeIfExists(TokenType.ASSIGN)) {
             Expression right = parseExpression();
             if (right == null) {
@@ -452,10 +474,7 @@ public class Parser {
 
     private Expression parseMemberExpression() throws IOException {
         Expression left = parseObjectValue();
-        if (left == null) {
-            left = parseIdentifierOrFunctionCall();
-            if (left == null) return null;
-        }
+        if (left == null) return null;
         while (consumeIfExists(TokenType.MEMBER)) {
             Expression right = parseIdentifierOrFunctionCall();
             if (right == null) {
@@ -552,10 +571,20 @@ public class Parser {
     private List<Expression> parseArguments() throws IOException {
         List<Expression> arguments = new ArrayList<>();
         Expression expression = parseExpression();
-        while (expression != null) {
-            nextToken();
-            arguments.add(expression);
+        if (expression == null){
+            return arguments;
+        }
+        while (consumeIfExists(TokenType.SEPARATOR)) {
             expression = parseExpression();
+            if (expression == null){
+                errorManager.reportError(
+                        new ParserErrorInfo(
+                                Severity.WARN,
+                                lexer.getToken().getPosition(),
+                                "Argument expected after a separator"));
+            } else {
+                arguments.add(expression);
+            }
         }
         return arguments;
     }

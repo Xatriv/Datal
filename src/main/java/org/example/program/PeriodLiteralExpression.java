@@ -10,4 +10,9 @@ import java.util.List;
 public class PeriodLiteralExpression implements Expression {
     @Getter
     List<Period> value;
+
+    @Override
+    public void accept(ProgramVisitor programVisitor) {
+        programVisitor.visit(this);
+    }
 }

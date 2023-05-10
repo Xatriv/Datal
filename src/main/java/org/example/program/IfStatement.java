@@ -11,4 +11,9 @@ public class IfStatement implements Statement {
     Block ifBlock;
     @Getter
     Block elseBlock;
+
+    @Override
+    public void accept(ProgramVisitor programVisitor) {
+        programVisitor.visit(this);
+    }
 }

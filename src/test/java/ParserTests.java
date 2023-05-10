@@ -1,11 +1,9 @@
 import org.example.error.CodeError;
 import org.example.error.ErrorManager;
-import org.example.lexer.CodeLexer;
 import org.example.lexer.Lexer;
 import org.example.lexer.MockLexer;
 import org.example.parser.Parser;
 import org.example.program.*;
-import org.example.source.CodeSource;
 import org.example.source.Position;
 import org.example.token.*;
 import org.example.types.Date;
@@ -13,8 +11,6 @@ import org.example.types.Period;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
-import java.io.Reader;
-import java.io.StringReader;
 import java.util.Arrays;
 import java.util.List;
 
@@ -97,14 +93,14 @@ public class ParserTests {
         Parser parser = new Parser(lexer, eM);
         Block block = new Block(List.of());
         FunctionDef fun = new FunctionDef("fun1", List.of(), block);
-        Parameter param = new Parameter("param1");
+        String param = "param1";
 //        Hashtable<String, FunctionDef> functions = new Hashtable<>() {{ put(fun.getName(), fun); }};
         Program program = parser.parse();
         assertEquals(1, program.getFunctions().size());
         assertEquals(fun.getName(), program.getFunctions().get(fun.getName()).getName());
         assertEquals(0, program.getFunctions().get(fun.getName()).getBody().getStatements().size());
         assertEquals(1, program.getFunctions().get(fun.getName()).getParameters().size());
-        assertEquals(param.getName(), program.getFunctions().get(fun.getName()).getParameters().get(0).getName());
+        assertEquals(param, program.getFunctions().get(fun.getName()).getParameters().get(0));
     }
 
     @Test
@@ -129,19 +125,19 @@ public class ParserTests {
         Parser parser = new Parser(lexer, eM);
         Block block = new Block(List.of());
         FunctionDef fun = new FunctionDef("fun1", List.of(), block);
-        Parameter param1 = new Parameter("param1");
-        Parameter param2 = new Parameter("param2");
-        Parameter param3 = new Parameter("param3");
-        Parameter param4 = new Parameter("param4");
+        String param1 = "param1";
+        String param2 = "param2";
+        String param3 = "param3";
+        String param4 = "param4";
         Program program = parser.parse();
         assertEquals(1, program.getFunctions().size());
         assertEquals(fun.getName(), program.getFunctions().get(fun.getName()).getName());
         assertEquals(0, program.getFunctions().get(fun.getName()).getBody().getStatements().size());
         assertEquals(4, program.getFunctions().get(fun.getName()).getParameters().size());
-        assertEquals(param1.getName(), program.getFunctions().get(fun.getName()).getParameters().get(0).getName());
-        assertEquals(param2.getName(), program.getFunctions().get(fun.getName()).getParameters().get(1).getName());
-        assertEquals(param3.getName(), program.getFunctions().get(fun.getName()).getParameters().get(2).getName());
-        assertEquals(param4.getName(), program.getFunctions().get(fun.getName()).getParameters().get(3).getName());
+        assertEquals(param1, program.getFunctions().get(fun.getName()).getParameters().get(0));
+        assertEquals(param2, program.getFunctions().get(fun.getName()).getParameters().get(1));
+        assertEquals(param3, program.getFunctions().get(fun.getName()).getParameters().get(2));
+        assertEquals(param4, program.getFunctions().get(fun.getName()).getParameters().get(3));
     }
 
     @Test
@@ -184,18 +180,18 @@ public class ParserTests {
         Parser parser = new Parser(lexer, eM);
         Block block = new Block(List.of());
         FunctionDef fun = new FunctionDef("fun1", List.of(), block);
-        Parameter param1 = new Parameter("param1");
+        String param1 = "param1";
         Program program = parser.parse();
         assertEquals(1, program.getFunctions().size());
         assertEquals(fun.getName(), program.getFunctions().get(fun.getName()).getName());
         assertEquals(0, program.getFunctions().get(fun.getName()).getBody().getStatements().size());
         assertEquals(1, program.getFunctions().get(fun.getName()).getParameters().size());
-        assertEquals(param1.getName(), program.getFunctions().get(fun.getName()).getParameters().get(0).getName());
+        assertEquals(param1, program.getFunctions().get(fun.getName()).getParameters().get(0));
     }
 
 
     @Test
-    void missingBlockTest() throws IOException {
+    void missingBlockTest() {
         Position pos = new Position(0, 0);
         List<Token> tokens = Arrays.asList(
                 new IdentifierToken("fun1", pos),
@@ -301,7 +297,7 @@ public class ParserTests {
             parser.parse();
         });
         assertEquals(1, eM.getErrors().size());
-        assertEquals("Parameter name already exists (param1)", eM.getErrors().get(0).getMessage());
+        assertEquals("String name already exists (param1)", eM.getErrors().get(0).getMessage());
     }
 
     @Test
@@ -475,7 +471,7 @@ public class ParserTests {
                         .getStatements()
                         .get(1)
         ).getExpression()).getValue();
-        assertTrue(date.isAC());
+        assertTrue(date.isAD());
         assertEquals(2022, date.getYear());
         assertEquals(1, date.getMonth());
         assertEquals(2, date.getDay());

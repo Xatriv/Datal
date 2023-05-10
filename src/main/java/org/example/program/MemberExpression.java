@@ -9,4 +9,8 @@ public class MemberExpression implements Expression {
     Expression object;
     @Getter
     Expression member;
+    @Override
+    public void accept(ProgramVisitor programVisitor) {
+        programVisitor.visit(this);
+    }
 }
