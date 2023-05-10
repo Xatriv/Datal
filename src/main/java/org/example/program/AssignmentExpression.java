@@ -4,9 +4,9 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 @AllArgsConstructor
-public class WhileStatement implements Statement {
+public class AssignmentExpression implements Expression{
     @Getter
-    Expression condition;
+    Expression left;
     @Getter
-    Block loopBlock;
+    Expression right;
 }

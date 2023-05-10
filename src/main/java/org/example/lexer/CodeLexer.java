@@ -404,7 +404,8 @@ public class CodeLexer implements Lexer {
         }
         position = new Position(source.getPosition());
         if (character == source.ETX) {
-            return new SimpleToken(TokenType.EOF, position);
+            currentToken = new SimpleToken(TokenType.EOF, position);
+            return currentToken;
         }
         if (tryBuildSingleCharToken()
                 || tryBuildRelationToken()
@@ -415,10 +416,10 @@ public class CodeLexer implements Lexer {
         ) {
             return currentToken;
         }
-        character = source.nextCharacter();
         errorManager.reportError(
                 new LexerErrorInfo(Severity.WARN, position, "Unrecognized token occurred"));
-
-        return new SimpleToken(TokenType.UNKNOWN, position);
+        currentToken = new SimpleToken(TokenType.UNKNOWN, position);
+        character = source.nextCharacter();
+        return currentToken;
     }
 }
