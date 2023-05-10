@@ -12,7 +12,7 @@ Language provides
 * datetime type, which stores an array of independent unsigned integers that represent a date composed of different time
 units
 * period type, which stores an information about time difference between two points in time, or explicit difference
-specified by the user, and information about era (`AC`/`y` or `BC`)
+specified by the user, and information about era (`AD`/`y` or `BC`)
 * built-in members for datetime and period types that allow for extracting time information in different units from the
 variable
 * boolean logic, i.e. negation, conjunction and alternative
@@ -45,15 +45,17 @@ eol             \n\r|\r\n|\n
 digit           [0-9]
 intLiteral      0|-?[1-9][0-9]*
 doubleLiteral   -?([0-9])+\.([0-9])+
-dateLiteral     [1-9][0-9]*([yY]|AC|BC):[1-9][0-9]?[mM]:[1-9][0-9]?[dD]:[1-9][0-9]?[hH]:[1-9][0-9]?\':[1-9][0-9]?\"
+dateLiteral     [1-9][0-9]*([yY]|AD|BC):[1-9][0-9]?[mM]:[1-9][0-9]?[dD]:[1-9][0-9]?[hH]:[1-9][0-9]?\':[1-9][0-9]?\"
 yearUnit        [0-9][yY]
 monthUnit       [0-9][mM]
 dayUnit         [0-9][dD]
 hourUnit        [0-9][hH]
 minuteUnit      [0-9]\'
 secondUnit      [0-9]\"
-addOp           [\+\-]
-multOp          [\*\\]
+plus            \+
+minus           \-
+multiply        \*
+divide          \\
 andOp           and
 orOp            or
 notOp           not
@@ -84,7 +86,9 @@ char            = ? every UTF-8 character ?;
 (*Non-terminal symbols*)
 specialSymbol   = addOp | multOp | assignOp | memberOp | "\\" | "!" | ":" | ";" | "'" | "\"" | "," | "" | "" 
                 | "(" | ")" | "[" | "]" | "{" | "}" | "<" | ">";
- 
+additiveOp      = plus | minus;
+multiplOp       = multiply | divide 
+negationOp      = notOp | minus; 
 
 stringChar      = escapeChar | char;
 stringLiteral   = strDelimL, {stringChar}, strDelimR;
@@ -113,8 +117,9 @@ simpleValue     = simpleLiteral
 objectValue     = objectLiteral
                 | identOrFuncCall;
  
-memberExpr      = objectValue, {memberOp, ident}, [assignOp, expr];
-negExpr         = [notOp], (memberExpr | simpleValue);
+memberExpr      = objectValue, {memberOp, identOrFuncCall};
+assignExpr      = memberExpr, [assignOp, expr];
+negExpr         = [negOp], (memberExpr | simpleValue);
 multExpr        = negExpr, {multOp, negExpr};
 addExpr         = multExpr, {addOp, multExpr};
 compExpr        = addExpr, [compOp, addExpr];

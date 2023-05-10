@@ -1,5 +1,6 @@
 import org.example.error.CodeError;
 import org.example.error.ErrorManager;
+import org.example.error.Severity;
 import org.example.lexer.CodeLexer;
 import org.example.source.CodeSource;
 import org.example.token.*;
@@ -161,6 +162,43 @@ public class LexerTests {
     }
 
     @Test
+    void buildStringWithUTF32() throws IOException {
+        String code = "[\uD83D\uDE0B葛葛葛葛葛葛葛葛\uD83D\uDC7E]";
+        List<Token> tokens = new ArrayList<>();
+        try (Reader sR = new StringReader(code)) {
+            ErrorManager eM = new ErrorManager();
+            CodeSource source = new CodeSource(sR, eM);
+            CodeLexer codeLexer = new CodeLexer(source, eM);
+            Token t;
+            while ((t = codeLexer.next()).getType() != TokenType.EOF)
+                tokens.add(t);
+        }
+        assertEquals(1, tokens.size());
+        assertEquals(TokenType.STRING, tokens.get(0).getType());
+        assertEquals("\uD83D\uDE0B葛葛葛葛葛葛葛葛\uD83D\uDC7E", ((StringToken) tokens.get(0)).getValue());
+    }
+
+    @Test
+    void errorDateMissingSecondUnitSymbol() throws IOException {
+        String code = "2023Y:1M:1D:0H:0':0"; //note lack of \"
+        List<Token> tokens = new ArrayList<>();
+        try (Reader sR = new StringReader(code)) {
+            ErrorManager eM = new ErrorManager();
+            CodeSource source = new CodeSource(sR, eM);
+            CodeLexer codeLexer = new CodeLexer(source, eM);
+            Token t;
+            while ((t = codeLexer.next()).getType() != TokenType.EOF)
+                tokens.add(t);
+            assertEquals(1, tokens.size());
+            assertEquals(TokenType.DATE, tokens.get(0).getType());
+            assertEquals(eM.getErrors().size(), 1);
+            assertEquals(eM.getErrors().get(0).getSeverity(), Severity.WARN);
+            assertEquals(eM.getErrors().get(0).getMessage(), "Unexpected character while building date. Seconds must be followed by \" ");
+        }
+    }
+
+
+    @Test
     void buildComment() throws IOException {
         String code = "hello#thisIsComment */return\nreturn";
         List<Token> tokens = new ArrayList<>();
@@ -204,6 +242,20 @@ public class LexerTests {
             CodeLexer codeLexer = new CodeLexer(source, eM);
             assertThrows(CodeError.class, codeLexer::next);
             assertEquals(1, eM.getErrors().size());
+        }
+    }
+
+    @Test
+    void errorMismatchedString() throws IOException {
+        String code = "[hello";
+        try (Reader sR = new StringReader(code)) {
+            ErrorManager eM = new ErrorManager();
+            CodeSource source = new CodeSource(sR, eM);
+            CodeLexer codeLexer = new CodeLexer(source, eM);
+            assertThrows(CodeError.class, codeLexer::next);
+            assertEquals(1, eM.getErrors().size());
+            assertEquals(eM.getErrors().get(0).getMessage(), "String unmatched");
+            assertEquals(eM.getErrors().get(0).getSeverity(), Severity.ERROR);
         }
     }
 
@@ -385,15 +437,15 @@ public class LexerTests {
 
     @Test
     public void invalidNewlineAfterRNTest() throws IOException {
-//        String codeN_NR = "something\r\nxd;;\n;";
-//        try (Reader sR = new StringReader(codeN_NR)){
-//            ErrorManager eM = new ErrorManager();
-//            CodeSource source = new CodeSource(sR, eM);
-//            CodeLexer codeLexer = new CodeLexer(source, eM);
-//            //noinspection StatementWithEmptyBody
-//            while ( (codeLexer.next()).getType() != TokenType.SEMICOLON);
-//            assertThrows(CodeError.class, codeLexer::next);
-//        }
+        String codeN_NR = "something\r\nxd;;\n;";
+        try (Reader sR = new StringReader(codeN_NR)){
+            ErrorManager eM = new ErrorManager();
+            CodeSource source = new CodeSource(sR, eM);
+            CodeLexer codeLexer = new CodeLexer(source, eM);
+            //noinspection StatementWithEmptyBody
+            while ( (codeLexer.next()).getType() != TokenType.SEMICOLON);
+            assertThrows(CodeError.class, codeLexer::next);
+        }
 
         String code = "something\r\nxd;;\n\r;";
         try (Reader sR = new StringReader(code)){

@@ -25,6 +25,7 @@ public class ErrorManager {
             throw new MaxErrorsExceededError(maxErrors);
         }
     }
+    @SuppressWarnings("SameParameterValue")
     private static int readProperty(Properties props, String key, int defaultValue) {
         String value = props.getProperty(key);
         if (value == null) {
@@ -52,6 +53,16 @@ public class ErrorManager {
         }
 
         errors = new ArrayList<>();
+    }
+
+    public void printErrors(){
+        for (var err : getErrors()) {
+            System.out.printf("%s %s %s %s\n",
+                    err.getErrorStagePrefix(),
+                    err.getPosition().toString(),
+                    err.getSeverity().toString(),
+                    err.getMessage());
+        }
     }
 
 }

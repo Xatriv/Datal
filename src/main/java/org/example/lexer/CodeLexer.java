@@ -193,12 +193,16 @@ public class CodeLexer implements Lexer {
     }
 
     private boolean tryBuildYearPeriodOrDate(int wholePart) throws IOException {
-        boolean isEraAC = "yYA".indexOf(character) != -1;
-        if ("AB".indexOf(character) != -1 && !((character = source.nextCharacter()) == 'C')) {
-            errorManager.reportError(
-                    new LexerErrorInfo(Severity.INFO, position, "Unexpected character while building date. Era must be either y, Y, AC or BC "));
-            currentToken = new IntToken(wholePart, position);
-            return true;
+        boolean isEraAD = "yYA".indexOf(character) != -1;
+        if ("AB".indexOf(character) != -1){
+            int firstEraChar = character;
+            int secondEraChar = source.nextCharacter();
+            if ((firstEraChar == 'A' && secondEraChar != 'D') || (firstEraChar == 'B' && secondEraChar != 'C')){
+                errorManager.reportError(
+                        new LexerErrorInfo(Severity.WARN, position, "Unexpected character while building date. Era must be either y, Y, AD or BC "));
+                currentToken = new IntToken(wholePart, position);
+                return true;
+            }
         }
         if (!((character = source.nextCharacter()) == ':')) {
             currentToken = new PeriodToken(new Period(wholePart, 0, 0, 0, 0, 0), position);
@@ -227,13 +231,13 @@ public class CodeLexer implements Lexer {
         if ((secondValue = getDateNumber("second")) < 0) return false;
         if (character != '\"') {
             errorManager.reportError(
-                    new LexerErrorInfo(Severity.INFO, position, "Unexpected character while building date. Seconds must be followed by \" "));
-            currentToken = new DateToken(new Date(isEraAC, wholePart, monthValue,
+                    new LexerErrorInfo(Severity.WARN, position, "Unexpected character while building date. Seconds must be followed by \" "));
+            currentToken = new DateToken(new Date(isEraAD, wholePart, monthValue,
                     dayValue, hourValue, minuteValue, secondValue), position);
             return true;
         }
         character = source.nextCharacter();
-        currentToken = new DateToken(new Date(isEraAC, wholePart, monthValue,
+        currentToken = new DateToken(new Date(isEraAD, wholePart, monthValue,
                 dayValue, hourValue, minuteValue, secondValue), position);
         return true;
     }
@@ -307,8 +311,10 @@ public class CodeLexer implements Lexer {
         character = source.nextCharacter();
         while (characterIsDigit(character) || Character.isAlphabetic(character)) {
             if (0 < identifierMaxLength && identifierMaxLength == sB.length()) {
-                errorManager.reportError(
-                        new LexerErrorInfo(Severity.ERROR, position, "Identifier too long"));
+                errorManager.reportError(new LexerErrorInfo(
+                        Severity.ERROR,
+                        position,
+                        String.format("Identifier too long (length > %d)", identifierMaxLength)));
                 return false;
             }
             sB.append(Character.toString(character));
@@ -329,8 +335,10 @@ public class CodeLexer implements Lexer {
         character = source.nextCharacter();
         while (character != '\n' && character != source.ETX) {
             if (0 < commentMaxLength && commentMaxLength == sB.length()) {
-                errorManager.reportError(
-                        new LexerErrorInfo(Severity.ERROR, position, "Comment too long"));
+                errorManager.reportError(new LexerErrorInfo(
+                        Severity.ERROR,
+                        position,
+                        String.format("Comment too long (length > %d)", commentMaxLength)));
                 return false;
             }
             sB.append(Character.toString(character));
@@ -351,8 +359,10 @@ public class CodeLexer implements Lexer {
                 return false;
             }
             if (0 < stringLiteralMaxLength && stringLiteralMaxLength == sB.length()) {
-                errorManager.reportError(
-                        new LexerErrorInfo(Severity.ERROR, position, "String too long"));
+                errorManager.reportError(new LexerErrorInfo(
+                        Severity.ERROR,
+                        position,
+                        String.format("String too long (length > %d)", stringLiteralMaxLength)));
                 return false;
             }
             sB.append(Character.toString(tryProcessEscapeCharacter()));
@@ -398,7 +408,8 @@ public class CodeLexer implements Lexer {
         }
         position = new Position(source.getPosition());
         if (character == source.ETX) {
-            return new SimpleToken(TokenType.EOF, position);
+            currentToken = new SimpleToken(TokenType.EOF, position);
+            return currentToken;
         }
         if (tryBuildSingleCharToken()
                 || tryBuildRelationToken()
@@ -409,10 +420,10 @@ public class CodeLexer implements Lexer {
         ) {
             return currentToken;
         }
-        character = source.nextCharacter();
         errorManager.reportError(
                 new LexerErrorInfo(Severity.WARN, position, "Unrecognized token occurred"));
-
-        return new SimpleToken(TokenType.UNKNOWN, position);
+        currentToken = new SimpleToken(TokenType.UNKNOWN, position);
+        character = source.nextCharacter();
+        return currentToken;
     }
 }

@@ -1,0 +1,19 @@
+func1 (param1, param2) {
+    statement1;
+    § § § §
+    return expression;
+}
+
+func2 () {
+    while(i < 10) {
+        if (a <= 1BC:2m:3d:4h:5':6"{        #missing closing parenthesis
+            j = 0;
+            while j != 4) {                  #missing opening parenthesis
+                j = j + 1;
+            }
+        } else {
+            b.val.val2 = 2.12345                 #missing semicolon
+        }
+        c = 3 * (1 - 2);
+    return func(param3, );                  #missing expr after comma
+#}                                          #closing brace missing

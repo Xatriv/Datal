@@ -5,10 +5,10 @@ import lombok.Getter;
 import org.example.source.Position;
 
 @AllArgsConstructor
-public class LexerErrorInfo implements CodeErrorInfo {
+public class ParserErrorInfo implements CodeErrorInfo {
     @Override
     public String getErrorStagePrefix() {
-        return "LEXICAL ERROR";
+        return "SYNTAX ERROR";
     }
     @Getter
     private final Severity severity;
