@@ -6,9 +6,9 @@ import lombok.Getter;
 @AllArgsConstructor
 public class AndExpression implements Expression{
     @Getter
-    Expression rightExpression;
-    @Getter
     Expression leftExpression;
+    @Getter
+    Expression rightExpression;
 
     @Override
     public void accept(ProgramVisitor programVisitor) {

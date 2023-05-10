@@ -722,8 +722,37 @@ public class ParserLexerIntegrationTests {
     }
 
     @Test
+    public void additiveExpressionChainedTest() throws IOException {
+        String code = "fun1() {1 + 2 - 3 ;}";
+        try (Reader sR = new StringReader(code)) {
+            ErrorManager eM = new ErrorManager();
+            CodeSource source = new CodeSource(sR, eM);
+            Lexer lexer = new CodeLexer(source, eM);
+            Parser parser = new Parser(lexer, eM);
+            Program program = parser.parse();
+            Block block = new Block(List.of());
+            FunctionDef fun = new FunctionDef("fun1", List.of(), block);
+            AdditiveExpression additiveExpression = (AdditiveExpression) (
+                    (ExpressionStatement) program
+                            .getFunctions().get(fun.getName())
+                            .getBody()
+                            .getStatements()
+                            .get(0)
+            ).getExpression();
+            assertEquals(AdditiveExpression.class.getName(), additiveExpression.getLeftExpression().getClass().getName());
+            assertEquals(1, ((IntLiteralExpression)
+                    ((AdditiveExpression) additiveExpression.getLeftExpression()).getLeftExpression()).getValue());
+            assertEquals(2, ((IntLiteralExpression)
+                    ((AdditiveExpression) additiveExpression.getLeftExpression()).getRightExpression()).getValue());
+            assertEquals(3, ((IntLiteralExpression) additiveExpression.getRightExpression()).getValue());
+            assertEquals(AdditiveOperator.MINUS, additiveExpression.getOperator());
+            assertEquals(0, eM.getErrors().size());
+        }
+    }
+
+    @Test
     public void additiveExpressionMissingRightOperandTest() throws IOException {
-        String code = "fun1() {1 + ;}";
+        String code = "fun1() {1 +;}";
         try (Reader sR = new StringReader(code)) {
             ErrorManager eM = new ErrorManager();
             CodeSource source = new CodeSource(sR, eM);
@@ -735,6 +764,136 @@ public class ParserLexerIntegrationTests {
             });
             assertEquals(1, eM.getErrors().size());
             assertEquals("Additive expression is missing right operand", eM.getErrors().get(0).getMessage());
+        }
+    }
+
+    @Test
+    public void comparativeExpressionTest() throws IOException {
+        String code = "fun1() {1 < b ;}";
+        try (Reader sR = new StringReader(code)) {
+            ErrorManager eM = new ErrorManager();
+            CodeSource source = new CodeSource(sR, eM);
+            Lexer lexer = new CodeLexer(source, eM);
+            Parser parser = new Parser(lexer, eM);
+            Program program = parser.parse();
+            Block block = new Block(List.of());
+            FunctionDef fun = new FunctionDef("fun1", List.of(), block);
+            ComparativeExpression comparativeExpression = (ComparativeExpression) (
+                    (ExpressionStatement) program
+                            .getFunctions().get(fun.getName())
+                            .getBody()
+                            .getStatements()
+                            .get(0)
+            ).getExpression();
+            assertEquals(1, program.getFunctions().size());
+            assertEquals(fun.getName(), program.getFunctions().get(fun.getName()).getName());
+            assertEquals(IntLiteralExpression.class.getName(), comparativeExpression.getLeftExpression().getClass().getName());
+            assertEquals(IdentifierExpression.class.getName(), comparativeExpression.getRightExpression().getClass().getName());
+            assertEquals(ComparisonOperator.LESS_THAN, comparativeExpression.getOperator());
+            assertEquals(0, eM.getErrors().size());
+        }
+    }
+
+    @Test
+    public void comparativeExpressionMissingRightOperandTest() throws IOException {
+        String code = "fun1() {1 <;}";
+        try (Reader sR = new StringReader(code)) {
+            ErrorManager eM = new ErrorManager();
+            CodeSource source = new CodeSource(sR, eM);
+            Lexer lexer = new CodeLexer(source, eM);
+            Parser parser = new Parser(lexer, eM);
+            assertThrows(CodeError.class, () -> {
+                //noinspection Convert2MethodRef
+                parser.parse();
+            });
+            assertEquals(1, eM.getErrors().size());
+            assertEquals("Comparative expression is missing right operand", eM.getErrors().get(0).getMessage());
+        }
+    }
+
+    @Test
+    public void andExpressionTest() throws IOException {
+        String code = "fun1() {1 and b ;}";
+        try (Reader sR = new StringReader(code)) {
+            ErrorManager eM = new ErrorManager();
+            CodeSource source = new CodeSource(sR, eM);
+            Lexer lexer = new CodeLexer(source, eM);
+            Parser parser = new Parser(lexer, eM);
+            Program program = parser.parse();
+            Block block = new Block(List.of());
+            FunctionDef fun = new FunctionDef("fun1", List.of(), block);
+            AndExpression andExpression = (AndExpression) (
+                    (ExpressionStatement) program
+                            .getFunctions().get(fun.getName())
+                            .getBody()
+                            .getStatements()
+                            .get(0)
+            ).getExpression();
+            assertEquals(1, program.getFunctions().size());
+            assertEquals(fun.getName(), program.getFunctions().get(fun.getName()).getName());
+            assertEquals(IntLiteralExpression.class.getName(), andExpression.getLeftExpression().getClass().getName());
+            assertEquals(IdentifierExpression.class.getName(), andExpression.getRightExpression().getClass().getName());
+            assertEquals(0, eM.getErrors().size());
+        }
+    }
+
+    @Test
+    public void andExpressionMissingRightOperandTest() throws IOException {
+        String code = "fun1() {1 and;}";
+        try (Reader sR = new StringReader(code)) {
+            ErrorManager eM = new ErrorManager();
+            CodeSource source = new CodeSource(sR, eM);
+            Lexer lexer = new CodeLexer(source, eM);
+            Parser parser = new Parser(lexer, eM);
+            assertThrows(CodeError.class, () -> {
+                //noinspection Convert2MethodRef
+                parser.parse();
+            });
+            assertEquals(1, eM.getErrors().size());
+            assertEquals("AND expression is missing right operand", eM.getErrors().get(0).getMessage());
+        }
+    }
+
+    @Test
+    public void orExpressionTest() throws IOException {
+        String code = "fun1() {1 or b;}";
+        try (Reader sR = new StringReader(code)) {
+            ErrorManager eM = new ErrorManager();
+            CodeSource source = new CodeSource(sR, eM);
+            Lexer lexer = new CodeLexer(source, eM);
+            Parser parser = new Parser(lexer, eM);
+            Program program = parser.parse();
+            Block block = new Block(List.of());
+            FunctionDef fun = new FunctionDef("fun1", List.of(), block);
+            OrExpression orExpression = (OrExpression) (
+                    (ExpressionStatement) program
+                            .getFunctions().get(fun.getName())
+                            .getBody()
+                            .getStatements()
+                            .get(0)
+            ).getExpression();
+            assertEquals(1, program.getFunctions().size());
+            assertEquals(fun.getName(), program.getFunctions().get(fun.getName()).getName());
+            assertEquals(IntLiteralExpression.class.getName(), orExpression.getLeftExpression().getClass().getName());
+            assertEquals(IdentifierExpression.class.getName(), orExpression.getRightExpression().getClass().getName());
+            assertEquals(0, eM.getErrors().size());
+        }
+    }
+
+    @Test
+    public void orExpressionMissingRightOperandTest() throws IOException {
+        String code = "fun1() {1 or;}";
+        try (Reader sR = new StringReader(code)) {
+            ErrorManager eM = new ErrorManager();
+            CodeSource source = new CodeSource(sR, eM);
+            Lexer lexer = new CodeLexer(source, eM);
+            Parser parser = new Parser(lexer, eM);
+            assertThrows(CodeError.class, () -> {
+                //noinspection Convert2MethodRef
+                parser.parse();
+            });
+            assertEquals(1, eM.getErrors().size());
+            assertEquals("OR expression is missing right operand", eM.getErrors().get(0).getMessage());
         }
     }
 
@@ -816,6 +975,4 @@ public class ParserLexerIntegrationTests {
             assertEquals(0, eM.getErrors().size());
         }
     }
-
-
 }
