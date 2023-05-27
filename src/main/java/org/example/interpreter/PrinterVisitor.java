@@ -4,12 +4,20 @@ import org.example.program.*;
 
 public class PrinterVisitor implements ProgramVisitor {
     int spaces = 0;
+    String programName;
+
+    public PrinterVisitor(String programName) {
+        this.programName = programName;
+    }
     @Override
     public void visit(Program program) {
         spaces = 0;
+        print(String.format("Program: %s", programName));
+        spaces++;
         for (var fun: program.getFunctions().values()) {
             fun.accept(this);
         }
+        spaces--;
     }
 
     @Override
@@ -182,7 +190,7 @@ public class PrinterVisitor implements ProgramVisitor {
     @Override
     public void visit(IdentifierExpression expression) {
         spaces++;
-        print( "Identifier: " + expression.getName());
+        print("Identifier: " + expression.getName());
         spaces--;
     }
 

@@ -12,8 +12,11 @@ import org.example.types.Period;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.Properties;
 import java.lang.Math;
 
@@ -41,6 +44,12 @@ public class CodeLexer implements Lexer {
             TokenType.BLOCK_DELIMITER_L, TokenType.BLOCK_DELIMITER_R,
             TokenType.PARENTHESIS_L, TokenType.PARENTHESIS_R);
 
+    @SuppressWarnings("FieldCanBeLocal")
+    private final List<String> configPaths = Arrays.asList(
+            "src/main/java/org/example/parser/parser.properties",
+            "src/main/java/org/example/parser.properties",
+            "src/main/parser.properties");
+
 
     public CodeLexer(Source source, ErrorManager errorManager) throws IOException {
         this.source = source;
@@ -51,7 +60,13 @@ public class CodeLexer implements Lexer {
         int stringLiteralMaxLengthProp = -1;
         int commentMaxLengthProp = -1;
         try {
-            InputStream input = new FileInputStream("src/main/java/org/example/lexer/lexer.properties");
+            Optional<String> maybePath = configPaths.stream()
+                    .filter(path -> Files.exists(Paths.get(path)))
+                    .findFirst();
+            if (maybePath.isEmpty()){
+                throw new IOException("Missing lexer config path");
+            }
+            InputStream input = new FileInputStream(maybePath.get());
             props.load(input);
             identifierMaxLengthProp = readProperty(props, "IDENTIFIER_MAX_LENGTH", -1);
             stringLiteralMaxLengthProp = readProperty(props, "STRING_LITERAL_MAX_LENGTH", -1);

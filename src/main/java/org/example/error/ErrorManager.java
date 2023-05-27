@@ -5,15 +5,22 @@ import lombok.Getter;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Properties;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class ErrorManager {
     @Getter
     private final List<CodeErrorInfo> errors;
 
     private final int maxErrors;
+
+    @SuppressWarnings("FieldCanBeLocal")
+    private final List<String> configPaths = Arrays.asList(
+            "src/main/java/org/example/error/error.properties",
+            "src/main/java/org/example/error.properties",
+            "src/main/error.properties");
 
 
     public void reportError(CodeErrorInfo err){
@@ -44,7 +51,13 @@ public class ErrorManager {
         Properties props = new Properties();
         int maxErrorsProp = -1;
         try {
-            InputStream input = new FileInputStream("src/main/java/org/example/error/error.properties");
+            Optional<String> maybePath = configPaths.stream()
+                    .filter(path -> Files.exists(Paths.get(path)))
+                    .findFirst();
+            if (maybePath.isEmpty()){
+                throw new IOException("Missing error manager config path");
+            }
+            InputStream input = new FileInputStream(maybePath.get());
             props.load(input);
             maxErrorsProp = readProperty(props, "MAX_ERRORS", -1);
         } catch (IOException ignored) {
@@ -55,8 +68,9 @@ public class ErrorManager {
         errors = new ArrayList<>();
     }
 
-    public void printErrors(){
-        for (var err : getErrors()) {
+    public void printErrors(Severity minimumSeverity){
+        for (var err : getErrors().stream().filter(
+                e-> e.getSeverity().ordinal() >= minimumSeverity.ordinal()).collect(Collectors.toList())) {
             System.out.printf("%s %s %s %s\n",
                     err.getErrorStagePrefix(),
                     err.getPosition().toString(),

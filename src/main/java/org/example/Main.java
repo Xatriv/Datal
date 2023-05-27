@@ -1,12 +1,15 @@
 package org.example;
 
 import org.example.error.ErrorManager;
+import org.example.error.LexerErrorInfo;
+import org.example.error.Severity;
 import org.example.interpreter.PrinterVisitor;
 import org.example.lexer.CodeLexer;
 import org.example.lexer.CommentLexer;
 import org.example.parser.Parser;
 import org.example.program.Program;
 import org.example.source.CodeSource;
+import org.example.source.Position;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.*;
@@ -59,10 +62,10 @@ public class Main {
 
             Parser parser = new Parser(commentLexer, eM);
             Program program = parser.parse();
-            PrinterVisitor printer = new PrinterVisitor();
+            PrinterVisitor printer = new PrinterVisitor(fileName);
             program.accept(printer);
             System.out.println("Errors: ");
-            eM.printErrors();
+            eM.printErrors(Severity.INFO);
         }
     }
 }
