@@ -2,6 +2,7 @@ package org.example.program;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import org.example.source.Position;
 import org.example.types.Period;
 
 import java.util.List;
@@ -10,6 +11,8 @@ import java.util.List;
 public class PeriodLiteralExpression implements Expression {
     @Getter
     List<Period> value;
+    @Getter
+    Position position;
 
     @Override
     public void accept(ProgramVisitor programVisitor) {

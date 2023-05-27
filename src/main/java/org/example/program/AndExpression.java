@@ -2,6 +2,7 @@ package org.example.program;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import org.example.source.Position;
 
 @AllArgsConstructor
 public class AndExpression implements Expression{
@@ -9,6 +10,8 @@ public class AndExpression implements Expression{
     Expression leftExpression;
     @Getter
     Expression rightExpression;
+    @Getter
+    Position position;
 
     @Override
     public void accept(ProgramVisitor programVisitor) {
