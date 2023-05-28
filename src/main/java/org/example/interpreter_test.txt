@@ -1,0 +1,7 @@
+main () {
+    print(1);
+    print(2.1);
+    print([This is a string.]);
+    print(20d);
+    print(2020y:1m:2d:3h:4':5");
+}

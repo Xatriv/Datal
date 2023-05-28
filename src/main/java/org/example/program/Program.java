@@ -13,6 +13,10 @@ public class Program implements Visitable {
         this.functions = functions;
     }
 
+    public FunctionDef addFunctionIfAbsent(String name, FunctionDef def){
+        return functions.putIfAbsent(name, def);
+    }
+
     public void accept(ProgramVisitor visitor) {
         visitor.visit(this);
     }

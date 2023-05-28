@@ -3,6 +3,7 @@ package org.example;
 import org.example.error.ErrorManager;
 import org.example.error.LexerErrorInfo;
 import org.example.error.Severity;
+import org.example.interpreter.Interpreter;
 import org.example.interpreter.PrinterVisitor;
 import org.example.lexer.CodeLexer;
 import org.example.lexer.CommentLexer;
@@ -62,10 +63,11 @@ public class Main {
 
             Parser parser = new Parser(commentLexer, eM);
             Program program = parser.parse();
-            PrinterVisitor printer = new PrinterVisitor(fileName);
-            program.accept(printer);
-            System.out.println("Errors: ");
-            eM.printErrors(Severity.INFO);
+            Interpreter interpreter = new Interpreter(eM, program);
+//            PrinterVisitor printer = new PrinterVisitor(fileName);
+//            program.accept(printer);
+//            System.out.println("Errors: ");
+//            eM.printErrors(Severity.INFO);
         }
     }
 }

@@ -22,4 +22,8 @@ public class FunctionDef implements Visitable {
     public void accept(ProgramVisitor programVisitor) {
         programVisitor.visit(this);
     }
+
+    public boolean areArgumentsAcceptable(List<String> arguments) {
+        return parameters.size() == arguments.size();
+    }
 }

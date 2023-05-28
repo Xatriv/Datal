@@ -643,6 +643,7 @@ public class Parser {
         if (expression == null){
             return arguments;
         }
+        arguments.add(expression);
         while (consumeIfExists(TokenType.SEPARATOR)) {
             expression = parseExpression();
             if (expression == null){
