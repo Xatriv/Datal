@@ -7,7 +7,7 @@ import org.example.source.Position;
 @AllArgsConstructor
 public class DoubleLiteralExpression implements Expression{
     @Getter
-    double value;
+    Double value;
     @Getter
     Position position;
     @Override

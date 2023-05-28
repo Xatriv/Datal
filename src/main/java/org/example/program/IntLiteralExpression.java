@@ -7,7 +7,7 @@ import org.example.source.Position;
 @AllArgsConstructor
 public class IntLiteralExpression implements Expression{
     @Getter
-    int value;
+    Integer value;
     @Getter
     Position position;
     @Override
