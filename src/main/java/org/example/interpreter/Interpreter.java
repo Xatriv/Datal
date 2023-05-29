@@ -19,13 +19,13 @@ public class Interpreter implements ProgramVisitor {
         program.accept(this);
     }
 
-    private void verifyInstance(Object object, Class<?> type, Position position){ //TODO maybe Object instead of expression?
-        if (!(type.isInstance(object))) {
+    private void verifyInstance(Object object, List<Class<?>> types, Position position){ //TODO maybe Object instead of expression?
+        if (types.stream().noneMatch(t -> t.isInstance(object))) {
             errorManager.reportError(
                     new InterpreterErrorInfo(
                             Severity.ERROR,
                             position,
-                            String.format("Type error, expected: %s; received: %s", type, object.getClass())));
+                            String.format("Type error, expected any of type: %s; received: %s", types, object.getClass())));
         }
     }
 
@@ -87,12 +87,12 @@ public class Interpreter implements ProgramVisitor {
     @Override
     public void visit(WhileStatement statement) {
         statement.getCondition().accept(this);
-        verifyInstance(lastResult.getValue(), Boolean.class, statement.getCondition().getPosition());
+        verifyInstance(lastResult.getValue(), List.of(Boolean.class), statement.getCondition().getPosition());
         while ( (Boolean) lastResult.getValue()){
             //TODO check if it doesn't need more condition isBool check
             statement.getLoopBlock().accept(this);
             statement.getCondition().accept(this);
-            verifyInstance(lastResult.getValue(), Boolean.class, statement.getCondition().getPosition());
+            verifyInstance(lastResult.getValue(), List.of(Boolean.class), statement.getCondition().getPosition());
         }
     }
 
@@ -104,49 +104,56 @@ public class Interpreter implements ProgramVisitor {
     @Override
     public void visit(OrExpression expression) {
         expression.getLeftExpression().accept(this);
-        verifyInstance(lastResult, Boolean.class, expression.getPosition());
+        verifyInstance(lastResult, List.of(Boolean.class), expression.getPosition());
         if ((Boolean) lastResult.getValue()){
             lastResult = new InterpreterVisitationResult(true);
             return;
         }
         expression.getRightExpression().accept(this);
-        verifyInstance(lastResult.getValue(), Boolean.class, expression.getPosition());
+        verifyInstance(lastResult.getValue(), List.of(Boolean.class), expression.getPosition());
         lastResult = new InterpreterVisitationResult(lastResult.getValue());
     }
 
     @Override
     public void visit(AndExpression expression) {
         expression.getLeftExpression().accept(this);
-        verifyInstance(lastResult, Boolean.class, expression.getPosition());
+        verifyInstance(lastResult, List.of(Boolean.class), expression.getPosition());
         if (! (Boolean) lastResult.getValue()){
             lastResult = new InterpreterVisitationResult(false);
             return;
         }
         expression.getRightExpression().accept(this);
-        verifyInstance(lastResult.getValue(), Boolean.class, expression.getPosition());
+        verifyInstance(lastResult.getValue(), List.of(Boolean.class), expression.getPosition());
         lastResult = new InterpreterVisitationResult(lastResult.getValue());
     }
 
     @Override
     public void visit(ComparativeExpression expression) {
+        //TODO
         expression.getLeftExpression().accept(this);
-        var left = lastResult;
+        var left = lastResult.getValue();
         expression.getRightExpression().accept(this);
-        var right = lastResult;
+        var right = lastResult.getValue();
         switch (expression.getOperator()){
             case EQUALS:
-
+                lastResult = new InterpreterVisitationResult(OperationHandler.equals(left, right));
+                break;
             case NOT_EQUAL:
-                System.out.println("TODO equals"); //TODO
+                lastResult = new InterpreterVisitationResult(OperationHandler.notEqual(left, right));
+                break;
             case LESS_THAN:
+                lastResult = new InterpreterVisitationResult(OperationHandler.lessThan(left, right));
+                break;
             case MORE_THAN:
+                lastResult = new InterpreterVisitationResult(OperationHandler.moreThan(left, right));
+                break;
             case MORE_OR_EQUAL_THAN:
+                lastResult = new InterpreterVisitationResult(OperationHandler.moreOrEqualThan(left, right));
+                break;
             case LESS_OR_EQUAL_THAN:
-
+                lastResult = new InterpreterVisitationResult(OperationHandler.lessOrEqualThan(left, right));
+                break;
         }
-
-                //TODO
-        expression.accept(this);
     }
 
     @Override
@@ -188,11 +195,11 @@ public class Interpreter implements ProgramVisitor {
                 result = OperationHandler.divide(left, right);
             } catch (ArithmeticException e){
                 result = null;
-                new InterpreterErrorInfo(
-                        Severity.ERROR,
-                        expression.getPosition(),
-                        String.format("Incompatible operands in additive expression: %s + %s",
-                                left.getClass(), right.getClass()));
+                errorManager.reportError(
+                    new InterpreterErrorInfo(
+                            Severity.ERROR,
+                            expression.getPosition(),
+                        "Division by zero detected"));
             }
         }
         if (result == null){
@@ -208,18 +215,30 @@ public class Interpreter implements ProgramVisitor {
 
     @Override
     public void visit(NegationExpression expression) {
+        expression.getExpression().accept(this);
         //TODO
-        expression.accept(this);
+        if (lastResult.getValue() instanceof Boolean && expression.getOperator() == NegationOperator.NOT){
+            lastResult = new InterpreterVisitationResult(! (Boolean) lastResult.getValue());
+        } else if (lastResult.getValue() instanceof Number && expression.getOperator() == NegationOperator.MINUS){
+            lastResult = new InterpreterVisitationResult( -1 * (Double) lastResult.getValue());
+        } else {
+            errorManager.reportError(
+                    new InterpreterErrorInfo(
+                            Severity.ERROR,
+                            expression.getExpression().getPosition(),
+                            String.format("Type error: Attempted negating %s with %s operator.",
+                                    expression.getOperator().name(), expression.getExpression().getClass())));
+        }
     }
 
     @Override
     public void visit(AssignmentExpression expression) {
         //TODO assign right to identifier from left
         expression.getLeft().accept(this);
-        var left = lastResult;
+        var left = lastResult.getValue();
         expression.getRight().accept(this);
-        var right = lastResult;
-            if (! (left.getValue() instanceof IdentifierExpression)) {
+        var right = lastResult.getValue();
+            if (! (left instanceof IdentifierExpression)) {
                 errorManager.reportError(
                         new InterpreterErrorInfo(
                                 Severity.ERROR,
@@ -261,6 +280,7 @@ public class Interpreter implements ProgramVisitor {
 
     @Override
     public void visit(IdentifierExpression expression) {
+        //search BlockContexts up to FunctionCallContext. Return value if exists, else - null
 
     }
 

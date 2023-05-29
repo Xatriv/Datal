@@ -28,4 +28,46 @@ public class OperationHandler {
         }
         return null;
     }
+
+    public static Object equals(Object left, Object right) {
+        if (left instanceof Number && right instanceof Number) {
+            return ((Number) left).doubleValue() == ((Number) right).doubleValue();
+        }
+        return null;
+    }
+
+    public static Object notEqual(Object left, Object right) {
+        if (left instanceof Number && right instanceof Number) {
+            return ((Number) left).doubleValue() != ((Number) right).doubleValue();
+        }
+        return null;
+    }
+
+    public static Object lessThan(Object left, Object right) {
+        if (left instanceof Number && right instanceof Number) {
+            return ((Number) left).doubleValue() < ((Number) right).doubleValue();
+        }
+        return null;
+    }
+
+    public static Object moreThan(Object left, Object right) {
+        if (left instanceof Number && right instanceof Number) {
+            return ((Number) left).doubleValue() > ((Number) right).doubleValue();
+        }
+        return null;
+    }
+
+    public static Object lessOrEqualThan(Object left, Object right) {
+        if (left instanceof Number && right instanceof Number) {
+            return ((Number) left).doubleValue() <= ((Number) right).doubleValue();
+        }
+        return null;
+    }
+
+    public static Object moreOrEqualThan(Object left, Object right) {
+        if (left instanceof Number && right instanceof Number) {
+            return ((Number) left).doubleValue() >= ((Number) right).doubleValue();
+        }
+        return null;
+    }
 }
