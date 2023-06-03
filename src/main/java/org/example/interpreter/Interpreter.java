@@ -176,7 +176,6 @@ public class Interpreter implements ProgramVisitor {
 
     @Override
     public void visit(ComparativeExpression expression) {
-        //TODO
         expression.getLeftExpression().accept(this);
         var left = lastResult.getValue();
         expression.getRightExpression().accept(this);
@@ -217,7 +216,6 @@ public class Interpreter implements ProgramVisitor {
 
     @Override
     public void visit(AdditiveExpression expression) {
-        //TODO
         expression.getLeftExpression().accept(this);
         var left = lastResult.getValue();
         expression.getRightExpression().accept(this);
@@ -241,7 +239,6 @@ public class Interpreter implements ProgramVisitor {
 
     @Override
     public void visit(MultiplicativeExpression expression) {
-        //TODO
         expression.getLeftExpression().accept(this);
         var left = lastResult.getValue();
         expression.getRightExpression().accept(this);
@@ -275,7 +272,6 @@ public class Interpreter implements ProgramVisitor {
     @Override
     public void visit(NegationExpression expression) {
         expression.getExpression().accept(this);
-        //TODO
         if (lastResult.getValue() instanceof Boolean && expression.getOperator() == NegationOperator.NOT) {
             lastResult = new InterpreterVisitationResult(!(Boolean) lastResult.getValue());
         } else if (lastResult.getValue() instanceof Number && expression.getOperator() == NegationOperator.MINUS) {
