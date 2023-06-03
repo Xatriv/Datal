@@ -4,7 +4,6 @@ import org.example.error.ErrorManager;
 import org.example.error.LexerErrorInfo;
 import org.example.error.Severity;
 import org.example.interpreter.Interpreter;
-import org.example.interpreter.PrinterVisitor;
 import org.example.lexer.CodeLexer;
 import org.example.lexer.CommentLexer;
 import org.example.parser.Parser;
@@ -14,6 +13,7 @@ import org.example.source.Position;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.*;
+import java.util.Scanner;
 
 public class Main {
     public static void main(String @NotNull [] args) {

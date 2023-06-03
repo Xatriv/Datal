@@ -7,7 +7,7 @@ import java.util.List;
 
 public class ReadDoubleFunctionDef implements FunctionDef {
     @Getter
-    String name = "readString";
+    String name = "readDouble";
     @Getter
     Position position = new Position(0,0);
 

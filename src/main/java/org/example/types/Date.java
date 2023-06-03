@@ -78,7 +78,7 @@ public class Date {
         Integer minute = null;
         Integer second = null;
         int sum;
-        for (int unitSymbol: Arrays.asList('Y', 'M', 'D', 'H', '\'', '\"')) {
+        for (int unitSymbol: Arrays.asList('y', 'm', 'd', 'h', '\'', '\"')) {
             sum = 0;
             while (index < string.length() && isDigit(string.charAt(index))) {
                 int digit = string.charAt(index) - '0';
@@ -112,17 +112,17 @@ public class Date {
                 }
                 index++;
                 year = sum;
-            } else if (string.charAt(index) != unitSymbol ) {
+            } else if (Character.toLowerCase(string.charAt(index)) != unitSymbol ) {
                 return null;
             } else {
                 switch (unitSymbol){
-                    case 'M':
+                    case 'm':
                         month = sum;
                         break;
-                    case 'D':
+                    case 'd':
                         day = sum;
                         break;
-                    case 'H':
+                    case 'h':
                         hour = sum;
                         break;
                     case '\'':

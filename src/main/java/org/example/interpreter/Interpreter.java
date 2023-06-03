@@ -18,7 +18,7 @@ public class Interpreter implements ProgramVisitor {
 
     private final Stack<FunctionCallContext> callStack = new Stack<>();
     private InterpreterVisitationResult lastResult;
-    private Hashtable<String, FunctionDef> functionDefs = new Hashtable<>();
+    private final Hashtable<String, FunctionDef> functionDefs = new Hashtable<>();
 
     public Interpreter(ErrorManager errorManager, Program program) {
         this.errorManager = errorManager;
@@ -50,8 +50,12 @@ public class Interpreter implements ProgramVisitor {
     public void visit(Program program) {
         Position dummyPos = new Position(0, 0);
         functionDefs.putAll(program.getFunctions());
-        addFunctionDefinitionIfAbsent(new ReadStringFunctionDef()); // TODO readInt, print etc.
-        addFunctionDefinitionIfAbsent(new PrintFunctionDef()); // TODO readInt, print etc.
+        addFunctionDefinitionIfAbsent(new ReadStringFunctionDef());
+        addFunctionDefinitionIfAbsent(new ReadIntFunctionDef());
+        addFunctionDefinitionIfAbsent(new ReadDoubleFunctionDef());
+        addFunctionDefinitionIfAbsent(new ReadDateFunctionDef());
+        addFunctionDefinitionIfAbsent(new ReadPeriodFunctionDef());
+        addFunctionDefinitionIfAbsent(new PrintFunctionDef());
 
 
         var mainCall = new FunctionCallExpression("main", List.of(), dummyPos);
@@ -94,7 +98,7 @@ public class Interpreter implements ProgramVisitor {
 
     @Override
     public void visit(IfStatement statement) {
-        statement.getCondition().accept(this); //TODO wrap in if
+        statement.getCondition().accept(this);
         if (!(lastResult.getValue() instanceof Boolean)) {
             errorManager.reportError(
                     new InterpreterErrorInfo(
@@ -116,7 +120,6 @@ public class Interpreter implements ProgramVisitor {
         statement.getCondition().accept(this);
         verifyInstance(lastResult.getValue(), List.of(Boolean.class), statement.getCondition().getPosition());
         while ((Boolean) lastResult.getValue()) {
-            //TODO check if it doesn't need more condition isBool check
             statement.getLoopBlock().accept(this);
             statement.getCondition().accept(this);
             verifyInstance(lastResult.getValue(), List.of(Boolean.class), statement.getCondition().getPosition());
@@ -335,39 +338,22 @@ public class Interpreter implements ProgramVisitor {
                         }
                         Object invocationResult;
                         try {
-                            invocationResult = method.invoke(object, (Number) right);
+                            invocationResult = method.invoke(object, (Integer) right);
                         } catch (IllegalAccessException | InvocationTargetException e){
                             errorManager.reportError(
                                     new InterpreterErrorInfo(
                                             Severity.ERROR,
-                                            ((MemberExpression) left).getPosition(),
+                                            left.getPosition(),
                                             String.format("Unable to access member \"%s\"", methodName)));
                             return;
                         }
                         lastResult = new InterpreterVisitationResult(invocationResult);
-
-//                        switch (((IdentifierExpression) ((MemberExpression) left).getMember()).getName()) {
-//                            case "year":
-//                                ((Period) object).setYear((Integer) right); break;
-//                            case "month":
-//                                ((Period) object).setMonth((Integer) right); break;
-//                            case "day":
-//                                ((Period) object).setDay((Integer) right); break;
-//                            case "hour":
-//                                ((Period) object).setHour((Integer) right); break;
-//                            case "minute":
-//                                ((Period) object).setMinute((Integer) right); break;
-//                            case "second":
-//                                ((Period) object).setSecond((Integer) right); break;
-//                            default:
-//                                //TODO throw error no such member
-//                                 return;
                     }
                     if ((((MemberExpression) left).getMember() instanceof FunctionCallExpression)){
-                        Method method = null;
+                        Method method;
                         String methodName = ((FunctionCallExpression) ((MemberExpression) left).getMember()).getName();
                         try {
-                            method = object.getClass().getMethod(methodName); //TODO maybe cast object to Period
+                            method = object.getClass().getMethod(methodName);
                         } catch (NoSuchMethodException e) {
                             errorManager.reportError(
                                     new InterpreterErrorInfo(
@@ -465,10 +451,6 @@ public class Interpreter implements ProgramVisitor {
 
     @Override
     public void visit(PeriodLiteralExpression expression) {
-        //TODO
-//        Period p = new Period(
-//          expression.getValue().stream().
-//        );
         lastResult = new InterpreterVisitationResult(expression.getValue());
     }
 
@@ -525,18 +507,18 @@ public class Interpreter implements ProgramVisitor {
     @Override
     public void visit(ReadStringFunctionDef functionDef) {
         reportWarnIfArgsInReadFunction();
-        Scanner myObj = new Scanner(System.in);
-        String stringValue = myObj.nextLine();
+        Scanner scanner = new Scanner(System.in);
+        String stringValue = scanner.nextLine();
         lastResult = new InterpreterVisitationResult(stringValue);
     }
 
     @Override
     public void visit(ReadIntFunctionDef functionDef) {
         reportWarnIfArgsInReadFunction();
-        Scanner myObj = new Scanner(System.in);
+        Scanner scanner = new Scanner(System.in);
         Integer intValue = null;
         try {
-            intValue = Integer.parseInt(myObj.nextLine());
+            intValue = Integer.parseInt(scanner.nextLine());
         } catch (NumberFormatException e) {
             errorManager.reportError(
                     new InterpreterErrorInfo(
@@ -552,10 +534,10 @@ public class Interpreter implements ProgramVisitor {
     @Override
     public void visit(ReadDoubleFunctionDef functionDef) {
         reportWarnIfArgsInReadFunction();
-        Scanner myObj = new Scanner(System.in);
-        Integer doubleValue = null;
+        Scanner scanner = new Scanner(System.in);
+        Double doubleValue = null;
         try {
-            doubleValue = Integer.parseInt(myObj.nextLine());
+            doubleValue = Double.parseDouble(scanner.nextLine());
         } catch (NumberFormatException e) {
             errorManager.reportError(
                     new InterpreterErrorInfo(
@@ -571,14 +553,14 @@ public class Interpreter implements ProgramVisitor {
     @Override
     public void visit(ReadDateFunctionDef readDateFunctionDef) {
         reportWarnIfArgsInReadFunction();
-        Scanner myObj = new Scanner(System.in);
+        Scanner scanner = new Scanner(System.in);
         Date dateValue;
-        if ((dateValue = Date.fromString(myObj.nextLine())) == null) {
+        if ((dateValue = Date.fromString(scanner.nextLine())) == null) {
             errorManager.reportError(
                     new InterpreterErrorInfo(
                             Severity.ERROR,
                             callStack.peek().getPosition(),
-                            "Could not parse double input."
+                            "Could not parse date input."
                     )
             );
         }
@@ -588,14 +570,14 @@ public class Interpreter implements ProgramVisitor {
     @Override
     public void visit(ReadPeriodFunctionDef readPeriodFunctionDef) {
         reportWarnIfArgsInReadFunction();
-        Scanner myObj = new Scanner(System.in);
+        Scanner scanner = new Scanner(System.in);
         Period periodValue;
-        if ((periodValue = Period.fromString(myObj.nextLine())) == null) {
+        if ((periodValue = Period.fromString(scanner.nextLine())) == null) {
             errorManager.reportError(
                     new InterpreterErrorInfo(
                             Severity.ERROR,
                             callStack.peek().getPosition(),
-                            "Could not parse double input."
+                            "Could not parse period input."
                     )
             );
         }

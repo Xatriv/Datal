@@ -47,8 +47,30 @@ main () {
     print([period2.hour = ], period2.hour, [\n]);
     period2.hour = 10;
     print([After assigning 10 to period2.hour: period2.hour = ], period2.hour, [\n]);
+
+    inputString = readString();
+    print([User input string = ], inputString, [\n]);
+
+    inputInt = readInt();
+    print([User input int = ], inputInt, [\n]);
+
+    inputDouble = readDouble();
+    print([User input double = ], inputDouble, [\n]);
+
+    inputDate = readDate();
+    print([User input date = ], inputDate, [\n]);
+
+    inputPeriod = readPeriod();
+    print([User input period = ], inputPeriod, [\n]);
+
+    print(voidFun());
 }
 
 printFormatted(ident) {
     print([Identifier value within loop: ], ident, [\n]);
+}
+
+voidFun(){
+    someident=1;
+    print([Entered void function]);
 }

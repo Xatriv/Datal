@@ -7,7 +7,7 @@ import java.util.List;
 
 public class ReadDateFunctionDef implements FunctionDef {
     @Getter
-    String name = "readString";
+    String name = "readDate";
     @Getter
     Position position = new Position(0,0);
 

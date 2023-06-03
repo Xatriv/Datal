@@ -7,7 +7,7 @@ import java.util.List;
 
 public class ReadPeriodFunctionDef implements FunctionDef {
     @Getter
-    String name = "readString";
+    String name = "readPeriod";
     @Getter
     Position position = new Position(0,0);
 

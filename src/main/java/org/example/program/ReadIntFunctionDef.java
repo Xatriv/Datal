@@ -7,7 +7,7 @@ import java.util.List;
 
 public class ReadIntFunctionDef implements FunctionDef {
     @Getter
-    String name = "readString";
+    String name = "readInt";
     @Getter
     Position position = new Position(0,0);
 
