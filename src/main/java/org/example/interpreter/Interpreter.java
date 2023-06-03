@@ -20,6 +20,17 @@ public class Interpreter implements ProgramVisitor {
     private InterpreterVisitationResult lastResult;
     private final Hashtable<String, FunctionDef> functionDefs = new Hashtable<>();
 
+    private InterpreterVisitationResult getLastResult(Position position){
+        if (lastResult == null) {
+            errorManager.reportError(
+                    new InterpreterErrorInfo(
+                            Severity.ERROR,
+                            position,
+                            "Attempted assigning a null value."));
+        }
+        return lastResult;
+    }
+
     public Interpreter(ErrorManager errorManager, Program program) {
         this.errorManager = errorManager;
         program.accept(this);
@@ -60,16 +71,17 @@ public class Interpreter implements ProgramVisitor {
 
         var mainCall = new FunctionCallExpression("main", List.of(), dummyPos);
         mainCall.accept(this);
-//        mainFunction.accept(this);
-//        for (var fun: program.getFunctions().values()) {
-//            fun.accept(this);
-//        }
     }
 
     @Override
     public void visit(UserFunctionDef functionDef) {
         if (functionDef.getParameters().size() != callStack.peek().getArguments().size()) {
-            //TODO report error params != args
+            errorManager.reportError(
+                    new InterpreterErrorInfo(
+                            Severity.ERROR,
+                            functionDef.getPosition(),
+                            String.format("Mismatched arguments. Function takes %d parameters, but %d were provided ",
+                                    functionDef.getParameters().size(), callStack.peek().getArguments().size())));
         }
         BlockContext context = new BlockContext();
         for (int i = 0; i < functionDef.getParameters().size(); i++) {
@@ -85,8 +97,13 @@ public class Interpreter implements ProgramVisitor {
     public void visit(Block block) {
 
         callStack.peek().getBlockContexts().add(0, new BlockContext());
-        for (var stmt : block.getStatements()) {
-            stmt.accept(this); //TODO handle return statements, if so - return
+        var statements =  block.getStatements();
+        for (int i = 0; i < statements.size() && !callStack.peek().getReturned(); i++) {
+            statements.get(i).accept(this);
+            if (statements.get(i) instanceof ReturnStatement){
+                callStack.peek().setReturned(true);
+                break;
+            }
         }
         callStack.peek().getBlockContexts().remove(0);
     }
@@ -99,7 +116,7 @@ public class Interpreter implements ProgramVisitor {
     @Override
     public void visit(IfStatement statement) {
         statement.getCondition().accept(this);
-        if (!(lastResult.getValue() instanceof Boolean)) {
+        if (!(getLastResult(statement.getPosition()).getValue() instanceof Boolean)) {
             errorManager.reportError(
                     new InterpreterErrorInfo(
                             Severity.ERROR,
@@ -128,8 +145,7 @@ public class Interpreter implements ProgramVisitor {
 
     @Override
     public void visit(ReturnStatement statement) {
-        statement.getExpression().accept(this);
-
+       statement.getExpression().accept(this);
     }
 
     @Override
@@ -456,7 +472,6 @@ public class Interpreter implements ProgramVisitor {
 
     @Override
     public void visit(IdentifierExpression expression) {
-        //search BlockContexts up to FunctionCallContext. Return value if exists, else - null
         for (BlockContext context : callStack.peek().getBlockContexts()) {
             var value = context.getLocalVariables().get(expression.getName());
             if (value != null) {
@@ -591,7 +606,7 @@ public class Interpreter implements ProgramVisitor {
                     new InterpreterErrorInfo(
                             Severity.WARN,
                             callStack.peek().getPosition(),
-                            "Print function takes some arguments, but they were not provided." //TODO more descriptive
+                            "Print function takes any number of arguments higher than 0, but they were not provided."
                     )
             );
         }

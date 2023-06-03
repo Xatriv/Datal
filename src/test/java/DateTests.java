@@ -325,6 +325,32 @@ public class DateTests {
         Date date1 = Date.fromString("2023XD ");
         assertNull(date1);
     }
+
+    @Test
+    void addPeriods() {
+        Period period1 = new Period(1, 2, 3, 4, 5, 6, 0L);
+        Period period2 = new Period(2, 3, 4, 5, 6, 7, 0L);
+        Period result = period2.add(period1);
+        assertEquals(3, result.getYear());
+        assertEquals(5, result.getMonth());
+        assertEquals(7, result.getDay());
+        assertEquals(9, result.getHour());
+        assertEquals(11, result.getMinute());
+        assertEquals(13, result.getSecond());
+    }
+
+    @Test
+    void subtractPeriods() {
+        Period period1 = new Period(1, 2, 3, 4, 5, 6, 0L);
+        Period period2 = new Period(2, 3, 4, 5, 6, 7, 0L);
+        Period result = period2.subtract(period1);
+        assertEquals(1, result.getYear());
+        assertEquals(1, result.getMonth());
+        assertEquals(1, result.getDay());
+        assertEquals(1, result.getHour());
+        assertEquals(1, result.getMinute());
+        assertEquals(1, result.getSecond());
+    }
 }
 
 

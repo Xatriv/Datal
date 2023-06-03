@@ -1,4 +1,5 @@
 main () {
+    print(fibonacci(7), [\n]);
     print([1 = ], 1);
     print([2.1 = ], 2.1, [\n]);
     print([This is a string.\n]);
@@ -48,6 +49,9 @@ main () {
     period2.hour = 10;
     print([After assigning 10 to period2.hour: period2.hour = ], period2.hour, [\n]);
 
+    print(earlyReturn());
+
+
     inputString = readString();
     print([User input string = ], inputString, [\n]);
 
@@ -73,4 +77,17 @@ printFormatted(ident) {
 voidFun(){
     someident=1;
     print([Entered void function]);
+}
+
+earlyReturn(){
+    return 1;
+    print([This should absolutely not print\n]);
+}
+
+fibonacci(n){
+    #print(n, [\n]);
+    if (n <= 1){
+        return n;
+    }
+    return fibonacci(n-1) + fibonacci(n-2);
 }

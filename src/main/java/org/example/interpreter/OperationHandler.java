@@ -14,6 +14,9 @@ public class OperationHandler {
         if (left instanceof Date && right instanceof Period) {
             return ((Date) left).add((Period) right);
         }
+        if (left instanceof Period && right instanceof Period) {
+            return ((Period) left).add((Period) right);
+        }
         return null;
     }
 
@@ -27,6 +30,9 @@ public class OperationHandler {
         if (left instanceof Date && right instanceof Date) {
             return ((Date) left).subtract((Date) right);
         }
+        if (left instanceof Period && right instanceof Period) {
+            return ((Period) left).subtract((Period) right);
+        }
         return null;
     }
 
@@ -37,6 +43,12 @@ public class OperationHandler {
         if (left instanceof Number && right instanceof Number) {
             return ((Number) left).doubleValue() * ((Number) right).doubleValue();
         }
+        if (left instanceof Integer && right instanceof Period) {
+            return ((Period) right).multiply((Integer) left);
+        }
+        if (left instanceof Period && right instanceof Integer) {
+            return ((Period) left).multiply((Integer) right);
+        }
         return null;
     }
 
@@ -46,6 +58,12 @@ public class OperationHandler {
         }
         if (left instanceof Number && right instanceof Number) {
             return ((Number) left).doubleValue() / ((Number) right).doubleValue();
+        }
+        if (left instanceof Integer && right instanceof Period) {
+            return ((Period) right).divide((Integer) left);
+        }
+        if (left instanceof Period && right instanceof Integer) {
+            return ((Period) left).divide((Integer) right);
         }
         return null;
     }

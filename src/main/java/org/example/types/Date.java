@@ -53,11 +53,11 @@ public class Date {
         if (date1.isAD() != date2.isAD()) return Boolean.compare(date1.isAD(), date2.isAD());
         int flip = date1.isAD() ? 1 : -1;
         if (date1.getYear() != date2.getYear()) return flip * Integer.compare(date1.getYear(), date2.getYear());
-        if (date1.getMonth() != date2.getMonth()) return flip * Integer.compare(date1.getMonth(), date2.getMonth());
-        if (date1.getDay() != date2.getDay()) return flip * Integer.compare(date1.getDay(), date2.getDay());
-        if (date1.getHour() != date2.getHour()) return flip * Integer.compare(date1.getHour(), date2.getHour());
-        if (date1.getMinute() != date2.getMinute()) return flip * Integer.compare(date1.getMinute(), date2.getMinute());
-        if (date1.getSecond() != date2.getSecond()) return flip * Integer.compare(date1.getSecond(), date2.getSecond());
+        if (date1.getMonth() != date2.getMonth()) return Integer.compare(date1.getMonth(), date2.getMonth());
+        if (date1.getDay() != date2.getDay()) return Integer.compare(date1.getDay(), date2.getDay());
+        if (date1.getHour() != date2.getHour()) return Integer.compare(date1.getHour(), date2.getHour());
+        if (date1.getMinute() != date2.getMinute()) return Integer.compare(date1.getMinute(), date2.getMinute());
+        if (date1.getSecond() != date2.getSecond()) return Integer.compare(date1.getSecond(), date2.getSecond());
         return 0;
     }
 

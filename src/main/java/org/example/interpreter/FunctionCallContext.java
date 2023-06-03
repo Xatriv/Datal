@@ -1,9 +1,9 @@
 package org.example.interpreter;
 
 import lombok.Getter;
+import lombok.Setter;
 import org.example.source.Position;
 
-import javax.naming.Context;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -14,8 +14,11 @@ public class FunctionCallContext implements Scope {
     List<Object> arguments;
     @Getter
     Position position;
+    @Getter @Setter
+    Boolean returned;
 
     public FunctionCallContext(List<Object> arguments) {
         this.arguments = arguments;
+        this.returned = false;
     }
 }

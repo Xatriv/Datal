@@ -80,15 +80,47 @@ public class Period {
                 + getAbsolutePeriodDifference() + "sec";
     }
 
-    public Period add(Period period){
+    private Period add(Period period, boolean flip){
         Period original = new Period(getYear(), getMonth(), getDay(), getHour(), getMinute(), getSecond(), getAbsolutePeriodDifference());
-        original.setYear(original.getYear() + period.getYear());
-        original.setMonth(original.getMonth() + period.getMonth());
-        original.setDay(original.getDay() + period.getDay());
-        original.setHour(original.getHour() + period.getHour());
-        original.setMinute(original.getMinute() + period.getMinute());
-        original.setSecond(original.getSecond() + period.getSecond());
-        original.setAbsolutePeriodDifference(original.getAbsolutePeriodDifference() + period.getAbsolutePeriodDifference());
+        original.setYear(original.getYear() + (flip ? -1 : 1) * period.getYear());
+        original.setMonth(original.getMonth() + (flip ? -1 : 1) * period.getMonth());
+        original.setDay(original.getDay() + (flip ? -1 : 1) * period.getDay());
+        original.setHour(original.getHour() + (flip ? -1 : 1) * period.getHour());
+        original.setMinute(original.getMinute() + (flip ? -1 : 1) * period.getMinute());
+        original.setSecond(original.getSecond() + (flip ? -1 : 1) * period.getSecond());
+        original.setAbsolutePeriodDifference(original.getAbsolutePeriodDifference() + (flip ? -1 : 1) * period.getAbsolutePeriodDifference());
+        return original;
+    }
+
+    public Period add(Period period){
+        return add(period, false);
+    }
+
+    public Period subtract(Period period){
+        return add(period, true);
+    }
+
+    public Period multiply(Integer factor) {
+        Period original = new Period(getYear(), getMonth(), getDay(), getHour(), getMinute(), getSecond(), getAbsolutePeriodDifference());
+        original.setYear(original.getYear() * factor);
+        original.setMonth(original.getMonth() * factor);
+        original.setDay(original.getDay() * factor);
+        original.setHour(original.getHour() * factor);
+        original.setMinute(original.getMinute() * factor);
+        original.setSecond(original.getSecond() * factor);
+        original.setAbsolutePeriodDifference(original.getAbsolutePeriodDifference() * factor);
+        return original;
+    }
+
+    public Period divide(Integer factor) {
+        Period original = new Period(getYear(), getMonth(), getDay(), getHour(), getMinute(), getSecond(), getAbsolutePeriodDifference());
+        original.setYear(original.getYear() / factor);
+        original.setMonth(original.getMonth() / factor);
+        original.setDay(original.getDay() / factor);
+        original.setHour(original.getHour() / factor);
+        original.setMinute(original.getMinute() / factor);
+        original.setSecond(original.getSecond() / factor);
+        original.setAbsolutePeriodDifference(original.getAbsolutePeriodDifference() / factor);
         return original;
     }
 }
