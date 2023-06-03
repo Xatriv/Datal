@@ -92,13 +92,6 @@ public class CodeLexer implements Lexer {
         }
     }
 
-
-    @SuppressWarnings("unused")
-    private void printConfig() {
-        System.out.println(this.identifierMaxLength);
-        System.out.println(this.stringLiteralMaxLength);
-    }
-
     @Override
     public Token getToken() {
         return currentToken;
@@ -179,19 +172,19 @@ public class CodeLexer implements Lexer {
         Period newPeriod = null;
         switch (upperCasedCharacter) {
             case 'M':
-                newPeriod = new Period(0, wholePart, 0, 0, 0, 0);
+                newPeriod = new Period(0, wholePart, 0, 0, 0, 0, 0L);
                 break;
             case 'D':
-                newPeriod = new Period(0, 0, wholePart, 0, 0, 0);
+                newPeriod = new Period(0, 0, wholePart, 0, 0, 0, 0L);
                 break;
             case 'H':
-                newPeriod = new Period(0, 0, 0, wholePart, 0, 0);
+                newPeriod = new Period(0, 0, 0, wholePart, 0, 0, 0L);
                 break;
             case '"':
-                newPeriod = new Period(0, 0, 0, 0, wholePart, 0);
+                newPeriod = new Period(0, 0, 0, 0, wholePart, 0, 0L);
                 break;
             case '\'':
-                newPeriod = new Period(0, 0, 0, 0, 0, wholePart);
+                newPeriod = new Period(0, 0, 0, 0, 0, wholePart, 0L);
                 break;
         }
         if (newPeriod != null) {
@@ -220,7 +213,7 @@ public class CodeLexer implements Lexer {
             }
         }
         if (!((character = source.nextCharacter()) == ':')) {
-            currentToken = new PeriodToken(new Period(wholePart, 0, 0, 0, 0, 0), position);
+            currentToken = new PeriodToken(new Period(wholePart, 0, 0, 0, 0, 0, 0L), position);
             return true;
         }
         character = source.nextCharacter();

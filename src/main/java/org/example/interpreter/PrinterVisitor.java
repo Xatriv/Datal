@@ -21,7 +21,7 @@ public class PrinterVisitor implements ProgramVisitor {
     }
 
     @Override
-    public void visit(FunctionDef functionDef) {
+    public void visit(UserFunctionDef functionDef) {
         print(String.format("FunctionDef: %s", functionDef.getName()));
         functionDef.getBody().accept(this);
     }
@@ -199,6 +199,48 @@ public class PrinterVisitor implements ProgramVisitor {
         spaces++;
         print(expression.getClass().getSimpleName());
         print(String.valueOf(expression.getName()));
+        spaces--;
+    }
+
+    @Override
+    public void visit(ReadStringFunctionDef functionDef) {
+        spaces++;
+        print(String.format("FunctionDef: %s", functionDef.getName()));
+        spaces--;
+    }
+
+    @Override
+    public void visit(PrintFunctionDef functionDef) {
+        spaces++;
+        print(String.format("FunctionDef: %s", functionDef.getName()));
+        spaces--;
+    }
+
+    @Override
+    public void visit(ReadIntFunctionDef functionDef) {
+        spaces++;
+        print(String.format("FunctionDef: %s", functionDef.getName()));
+        spaces--;
+    }
+
+    @Override
+    public void visit(ReadDoubleFunctionDef functionDef) {
+        spaces++;
+        print(String.format("FunctionDef: %s", functionDef.getName()));
+        spaces--;
+    }
+
+    @Override
+    public void visit(ReadDateFunctionDef functionDef) {
+        spaces++;
+        print(String.format("FunctionDef: %s", functionDef.getName()));
+        spaces--;
+    }
+
+    @Override
+    public void visit(ReadPeriodFunctionDef functionDef) {
+        spaces++;
+        print(String.format("FunctionDef: %s", functionDef.getName()));
         spaces--;
     }
 

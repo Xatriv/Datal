@@ -1,29 +1,16 @@
 package org.example.program;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
 import org.example.parser.Visitable;
 import org.example.source.Position;
 
+import java.util.Hashtable;
 import java.util.List;
 
-@AllArgsConstructor
-public class FunctionDef implements Visitable {
-    @Getter
-    String name;
-    @Getter
-    List<String> parameters;
-    @Getter
-    Block body;
-    @Getter
-    Position position;
+public interface FunctionDef extends Visitable {
+    String getName();
 
-    @Override
-    public void accept(ProgramVisitor programVisitor) {
-        programVisitor.visit(this);
-    }
+    Position getPosition();
+    Block getBody();
+    List<String> getParameters();
 
-    public boolean areArgumentsAcceptable(List<String> arguments) {
-        return parameters.size() == arguments.size();
-    }
 }

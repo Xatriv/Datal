@@ -69,7 +69,7 @@ public class ParserTests {
         Lexer lexer = new MockLexer(tokens);
         Parser parser = new Parser(lexer, eM);
         Block block = new Block(List.of(), pos);
-        FunctionDef fun = new FunctionDef("fun1", List.of(), block, pos);
+        UserFunctionDef fun = new UserFunctionDef("fun1", List.of(), block, pos);
         Program program = parser.parse();
         assertEquals(1, program.getFunctions().size());
         assertEquals(fun.getName(), program.getFunctions().get(fun.getName()).getName());
@@ -92,7 +92,7 @@ public class ParserTests {
         Lexer lexer = new MockLexer(tokens);
         Parser parser = new Parser(lexer, eM);
         Block block = new Block(List.of(), pos);
-        FunctionDef fun = new FunctionDef("fun1", List.of(), block, pos);
+        UserFunctionDef fun = new UserFunctionDef("fun1", List.of(), block, pos);
         String param = "param1";
 //        Hashtable<String, FunctionDef> functions = new Hashtable<>() {{ put(fun.getName(), fun); }};
         Program program = parser.parse();
@@ -124,7 +124,7 @@ public class ParserTests {
         Lexer lexer = new MockLexer(tokens);
         Parser parser = new Parser(lexer, eM);
         Block block = new Block(List.of(), pos);
-        FunctionDef fun = new FunctionDef("fun1", List.of(), block, pos);
+        UserFunctionDef fun = new UserFunctionDef("fun1", List.of(), block, pos);
         String param1 = "param1";
         String param2 = "param2";
         String param3 = "param3";
@@ -179,7 +179,7 @@ public class ParserTests {
         Lexer lexer = new MockLexer(tokens);
         Parser parser = new Parser(lexer, eM);
         Block block = new Block(List.of(), pos);
-        FunctionDef fun = new FunctionDef("fun1", List.of(), block, pos);
+        UserFunctionDef fun = new UserFunctionDef("fun1", List.of(), block, pos);
         String param1 = "param1";
         Program program = parser.parse();
         assertEquals(1, program.getFunctions().size());
@@ -222,7 +222,7 @@ public class ParserTests {
         Lexer lexer = new MockLexer(tokens);
         Parser parser = new Parser(lexer, eM);
         Block block = new Block(List.of(), pos);
-        FunctionDef fun = new FunctionDef("fun1", List.of(), block, pos);
+        UserFunctionDef fun = new UserFunctionDef("fun1", List.of(), block, pos);
         Program program = parser.parse();
         assertEquals(1, program.getFunctions().size());
         assertEquals(fun.getName(), program.getFunctions().get(fun.getName()).getName());
@@ -316,7 +316,7 @@ public class ParserTests {
         Lexer lexer = new MockLexer(tokens);
         Parser parser = new Parser(lexer, eM);
         Block block = new Block(List.of(), pos);
-        FunctionDef fun = new FunctionDef("fun1", List.of(), block, pos);
+        UserFunctionDef fun = new UserFunctionDef("fun1", List.of(), block, pos);
         Program program = parser.parse();
         assertEquals(1, program.getFunctions().size());
         assertEquals(fun.getName(), program.getFunctions().get(fun.getName()).getName());
@@ -347,7 +347,7 @@ public class ParserTests {
         Lexer lexer = new MockLexer(tokens);
         Parser parser = new Parser(lexer, eM);
         Block block = new Block(List.of(), pos);
-        FunctionDef fun = new FunctionDef("fun1", List.of(), block, pos);
+        FunctionDef fun = new UserFunctionDef("fun1", List.of(), block, pos);
         Program program = parser.parse();
         assertEquals(1, program.getFunctions().size());
         assertEquals(fun.getName(), program.getFunctions().get(fun.getName()).getName());
@@ -384,7 +384,7 @@ public class ParserTests {
         Lexer lexer = new MockLexer(tokens);
         Parser parser = new Parser(lexer, eM);
         Block block = new Block(List.of(), pos);
-        FunctionDef fun = new FunctionDef("fun1", List.of(), block, pos);
+        FunctionDef fun = new UserFunctionDef("fun1", List.of(), block, pos);
         Program program = parser.parse();
         assertEquals(1, program.getFunctions().size());
         assertEquals(fun.getName(), program.getFunctions().get(fun.getName()).getName());
@@ -437,8 +437,8 @@ public class ParserTests {
                 new SimpleToken(TokenType.PARENTHESIS_L, pos),
                 new SimpleToken(TokenType.PARENTHESIS_R, pos),
                 new SimpleToken(TokenType.BLOCK_DELIMITER_L, pos),
-                new PeriodToken(new Period(0, 0, 10, 0, 0, 0), pos),
-                new PeriodToken(new Period(0, 0, 0, 0, 0, 7), pos),
+                new PeriodToken(new Period(0, 0, 10, 0, 0, 0, 0L), pos),
+                new PeriodToken(new Period(0, 0, 0, 0, 0, 7, 0L), pos),
                 new SimpleToken(TokenType.SEMICOLON, pos),
                 new DateToken(new Date(true, 2022, 1, 2, 3, 4, 5), pos),
                 new SimpleToken(TokenType.BLOCK_DELIMITER_R, pos),
@@ -447,11 +447,11 @@ public class ParserTests {
         Lexer lexer = new MockLexer(tokens);
         Parser parser = new Parser(lexer, eM);
         Block block = new Block(List.of(), pos);
-        FunctionDef fun = new FunctionDef("fun1", List.of(), block, pos);
+        FunctionDef fun = new UserFunctionDef("fun1", List.of(), block, pos);
         Program program = parser.parse();
         assertEquals(1, program.getFunctions().size());
         assertEquals(fun.getName(), program.getFunctions().get(fun.getName()).getName());
-        List<Period> periods = (
+        Period period = (
                 (PeriodLiteralExpression) (
                         (ExpressionStatement) program
                                 .getFunctions().get(fun.getName())
@@ -460,10 +460,8 @@ public class ParserTests {
                                 .get(0)
                 ).getExpression()
         ).getValue();
-        Period periodDay = periods.get(0);
-        Period periodMinute = periods.get(1);
-        assertEquals(10, periodDay.getDay());
-        assertEquals(7, periodMinute.getSecond());
+        assertEquals(10, period.getDay());
+        assertEquals(7, period.getSecond());
         Date date = ((DateLiteralExpression) (
                 (ExpressionStatement) program
                         .getFunctions().get(fun.getName())
@@ -496,7 +494,7 @@ public class ParserTests {
         Lexer lexer = new MockLexer(tokens);
         Parser parser = new Parser(lexer, eM);
         Block block = new Block(List.of(), pos);
-        FunctionDef fun = new FunctionDef("fun1", List.of(), block, pos);
+        UserFunctionDef fun = new UserFunctionDef("fun1", List.of(), block, pos);
         Program program = parser.parse();
         assertEquals(1, program.getFunctions().size());
         assertEquals(fun.getName(), program.getFunctions().get(fun.getName()).getName());
@@ -530,7 +528,7 @@ public class ParserTests {
         Lexer lexer = new MockLexer(tokens);
         Parser parser = new Parser(lexer, eM);
         Block block = new Block(List.of(), pos);
-        FunctionDef fun = new FunctionDef("fun1", List.of(), block, pos);
+        UserFunctionDef fun = new UserFunctionDef("fun1", List.of(), block, pos);
         Program program = parser.parse();
         assertEquals(1, program.getFunctions().size());
         assertEquals(fun.getName(), program.getFunctions().get(fun.getName()).getName());
@@ -563,7 +561,7 @@ public class ParserTests {
         Lexer lexer = new MockLexer(tokens);
         Parser parser = new Parser(lexer, eM);
         Block block = new Block(List.of(), pos);
-        FunctionDef fun = new FunctionDef("fun1", List.of(), block, pos);
+        UserFunctionDef fun = new UserFunctionDef("fun1", List.of(), block, pos);
         Program program = parser.parse();
         assertEquals(1, program.getFunctions().size());
         assertEquals(fun.getName(), program.getFunctions().get(fun.getName()).getName());
@@ -608,7 +606,7 @@ public class ParserTests {
         Lexer lexer = new MockLexer(tokens);
         Parser parser = new Parser(lexer, eM);
         Block block = new Block(List.of(), pos);
-        FunctionDef fun = new FunctionDef("fun1", List.of(), block, pos);
+        UserFunctionDef fun = new UserFunctionDef("fun1", List.of(), block, pos);
         Program program = parser.parse();
         assertEquals(1, program.getFunctions().size());
         assertEquals(fun.getName(), program.getFunctions().get(fun.getName()).getName());
@@ -682,7 +680,7 @@ public class ParserTests {
         Lexer lexer = new MockLexer(tokens);
         Parser parser = new Parser(lexer, eM);
         Block block = new Block(List.of(), pos);
-        FunctionDef fun = new FunctionDef("fun1", List.of(), block, pos);
+        UserFunctionDef fun = new UserFunctionDef("fun1", List.of(), block, pos);
         Program program = parser.parse();
         AssignmentExpression assignmentExpression = (AssignmentExpression) (
                 (ExpressionStatement) program
@@ -755,7 +753,7 @@ public class ParserTests {
         Lexer lexer = new MockLexer(tokens);
         Parser parser = new Parser(lexer, eM);
         Block block = new Block(List.of(), pos);
-        FunctionDef fun = new FunctionDef("fun1", List.of(), block, pos);
+        UserFunctionDef fun = new UserFunctionDef("fun1", List.of(), block, pos);
         Program program = parser.parse();
         NegationExpression negationExpression = (NegationExpression) (
                 (ExpressionStatement) program
@@ -819,7 +817,7 @@ public class ParserTests {
         Lexer lexer = new MockLexer(tokens);
         Parser parser = new Parser(lexer, eM);
         Block block = new Block(List.of(), pos);
-        FunctionDef fun = new FunctionDef("fun1", List.of(), block, pos);
+        UserFunctionDef fun = new UserFunctionDef("fun1", List.of(), block, pos);
         Program program = parser.parse();
         MultiplicativeExpression multiplicativeExpression = (MultiplicativeExpression) (
                 (ExpressionStatement) program
@@ -856,7 +854,7 @@ public class ParserTests {
         Lexer lexer = new MockLexer(tokens);
         Parser parser = new Parser(lexer, eM);
         Block block = new Block(List.of(), pos);
-        FunctionDef fun = new FunctionDef("fun1", List.of(), block, pos);
+        UserFunctionDef fun = new UserFunctionDef("fun1", List.of(), block, pos);
         Program program = parser.parse();
         MultiplicativeExpression multiplicativeExpression = (MultiplicativeExpression) (
                 (ExpressionStatement) program
@@ -921,7 +919,7 @@ public class ParserTests {
         Lexer lexer = new MockLexer(tokens);
         Parser parser = new Parser(lexer, eM);
         Block block = new Block(List.of(), pos);
-        FunctionDef fun = new FunctionDef("fun1", List.of(), block, pos);
+        UserFunctionDef fun = new UserFunctionDef("fun1", List.of(), block, pos);
         Program program = parser.parse();
         AdditiveExpression additiveExpression = (AdditiveExpression) (
                 (ExpressionStatement) program
@@ -959,7 +957,7 @@ public class ParserTests {
         Parser parser = new Parser(lexer, eM);
         Program program = parser.parse();
         Block block = new Block(List.of(), pos);
-        FunctionDef fun = new FunctionDef("fun1", List.of(), block, pos);
+        UserFunctionDef fun = new UserFunctionDef("fun1", List.of(), block, pos);
         AdditiveExpression additiveExpression = (AdditiveExpression) (
                 (ExpressionStatement) program
                         .getFunctions().get(fun.getName())
@@ -1019,7 +1017,7 @@ public class ParserTests {
         Lexer lexer = new MockLexer(tokens);
         Parser parser = new Parser(lexer, eM);
         Block block = new Block(List.of(), pos);
-        FunctionDef fun = new FunctionDef("fun1", List.of(), block, pos);
+        UserFunctionDef fun = new UserFunctionDef("fun1", List.of(), block, pos);
         Program program = parser.parse();
         ComparativeExpression comparativeExpression = (ComparativeExpression) (
                 (ExpressionStatement) program
@@ -1078,7 +1076,7 @@ public class ParserTests {
         Lexer lexer = new MockLexer(tokens);
         Parser parser = new Parser(lexer, eM);
         Block block = new Block(List.of(), pos);
-        FunctionDef fun = new FunctionDef("fun1", List.of(), block, pos);
+        UserFunctionDef fun = new UserFunctionDef("fun1", List.of(), block, pos);
         Program program = parser.parse();
         AndExpression andExpression = (AndExpression) (
                 (ExpressionStatement) program
@@ -1136,7 +1134,7 @@ public class ParserTests {
         Lexer lexer = new MockLexer(tokens);
         Parser parser = new Parser(lexer, eM);
         Block block = new Block(List.of(), pos);
-        FunctionDef fun = new FunctionDef("fun1", List.of(), block, pos);
+        UserFunctionDef fun = new UserFunctionDef("fun1", List.of(), block, pos);
         Program program = parser.parse();
         OrExpression orExpression = (OrExpression) (
                 (ExpressionStatement) program
@@ -1195,7 +1193,7 @@ public class ParserTests {
         Lexer lexer = new MockLexer(tokens);
         Parser parser = new Parser(lexer, eM);
         Block block = new Block(List.of(), pos);
-        FunctionDef fun = new FunctionDef("fun1", List.of(), block, pos);
+        UserFunctionDef fun = new UserFunctionDef("fun1", List.of(), block, pos);
         Program program = parser.parse();
         AndExpression andExpression = (AndExpression) (
                 (ReturnStatement) program
@@ -1242,7 +1240,7 @@ public class ParserTests {
         Lexer lexer = new MockLexer(tokens);
         Parser parser = new Parser(lexer, eM);
         Block block = new Block(List.of(), pos);
-        FunctionDef fun = new FunctionDef("fun1", List.of(), block, pos);
+        UserFunctionDef fun = new UserFunctionDef("fun1", List.of(), block, pos);
         Program program = parser.parse();
         IfStatement statement = (IfStatement) program
                 .getFunctions().get(fun.getName())
@@ -1285,7 +1283,7 @@ public class ParserTests {
         Lexer lexer = new MockLexer(tokens);
         Parser parser = new Parser(lexer, eM);
         Block block = new Block(List.of(), pos);
-        FunctionDef fun = new FunctionDef("fun1", List.of(), block, pos);
+        UserFunctionDef fun = new UserFunctionDef("fun1", List.of(), block, pos);
         Program program = parser.parse();
         WhileStatement statement = (WhileStatement) program
                 .getFunctions().get(fun.getName())

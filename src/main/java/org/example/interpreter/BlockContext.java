@@ -1,8 +1,11 @@
 package org.example.interpreter;
 
+import lombok.Getter;
+
 import java.util.Hashtable;
 
 public class BlockContext implements Scope{
+    @Getter
     final Hashtable<String, Object> localVariables;
 
     BlockContext(){
@@ -10,7 +13,7 @@ public class BlockContext implements Scope{
     }
 
     void addVariable(String name, Object variable) {
-
+        localVariables.put(name, variable);
     }
 
 }

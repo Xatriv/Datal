@@ -91,7 +91,7 @@ public class Parser {
     public Program parse() throws IOException {
         nextToken();
         Hashtable<String, FunctionDef> functions = new Hashtable<>();
-        FunctionDef function;
+        UserFunctionDef function;
         while ( (function = parseFunctionDef()) != null){
             Position pos = lexer.getToken().getPosition();
             if (functions.putIfAbsent(function.getName(), function) != null) {
@@ -165,7 +165,7 @@ public class Parser {
         return true;
     }
 
-    private FunctionDef parseFunctionDef() throws IOException {
+    private UserFunctionDef parseFunctionDef() throws IOException {
         if (lexer.getToken().getType() != TokenType.IDENTIFIER) return null;
         Position pos = lexer.getToken().getPosition();
         String identifier = ((IdentifierToken) lexer.getToken()).getName();
@@ -187,7 +187,7 @@ public class Parser {
                     lexer.getToken().getPosition(),
                     "Missing statement block in function definition"));
         }
-        return new FunctionDef(identifier, parameters, bodyBlock, pos);
+        return new UserFunctionDef(identifier, parameters, bodyBlock, pos);
     }
 
     private List<String> parseParameters() throws IOException {
@@ -605,13 +605,11 @@ public class Parser {
                 nextToken();
                 return dateLiteral;
             case PERIOD:
-                List<Period> periods = new ArrayList<>(Collections.singletonList(
-                        ((PeriodToken) lexer.getToken()).getValue()));
+                Period parsedPeriod = ((PeriodToken) lexer.getToken()).getValue();
                 while (nextToken().getType() == TokenType.PERIOD) {
-                    periods.add(((PeriodToken) lexer.getToken()).getValue());
-                    nextToken();
+                    parsedPeriod = parsedPeriod.add(((PeriodToken) lexer.getToken()).getValue());
                 }
-                return new PeriodLiteralExpression(periods, pos);
+                return new PeriodLiteralExpression(parsedPeriod, pos);
         }
         return null;
     }

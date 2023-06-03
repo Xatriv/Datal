@@ -58,7 +58,7 @@ public class ParserLexerIntegrationTests {
             Program program = parser.parse();
             Position pos = new Position(0, 0);
             Block block = new Block(List.of(), pos);
-            FunctionDef fun = new FunctionDef("fun1", List.of(), block, pos);
+            UserFunctionDef fun = new UserFunctionDef("fun1", List.of(), block, pos);
             assertEquals(1, program.getFunctions().size());
             assertEquals(fun.getName(), program.getFunctions().get(fun.getName()).getName());
             assertEquals(0, program.getFunctions().get(fun.getName()).getBody().getStatements().size());
@@ -77,7 +77,7 @@ public class ParserLexerIntegrationTests {
             Program program = parser.parse();
             Position pos = new Position(0, 0);
             Block block = new Block(List.of(), pos);
-            FunctionDef fun = new FunctionDef("fun1", List.of(), block, pos);
+            UserFunctionDef fun = new UserFunctionDef("fun1", List.of(), block, pos);
             String param = "param1";
             assertEquals(1, program.getFunctions().size());
             assertEquals(fun.getName(), program.getFunctions().get(fun.getName()).getName());
@@ -98,7 +98,7 @@ public class ParserLexerIntegrationTests {
             Program program = parser.parse();
             Position pos = new Position(0, 0);
             Block block = new Block(List.of(), pos);
-            FunctionDef fun = new FunctionDef("fun1", List.of(), block, pos);
+            UserFunctionDef fun = new UserFunctionDef("fun1", List.of(), block, pos);
             String param1 = "param1";
             String param2 = "param2";
             String param3 = "param3";
@@ -142,7 +142,7 @@ public class ParserLexerIntegrationTests {
             Program program = parser.parse();
             Position pos = new Position(0, 0);
             Block block = new Block(List.of(), pos);
-            FunctionDef fun = new FunctionDef("fun1", List.of(), block, pos);
+            UserFunctionDef fun = new UserFunctionDef("fun1", List.of(), block, pos);
             String param1 = "param1";
             assertEquals(1, program.getFunctions().size());
             assertEquals(fun.getName(), program.getFunctions().get(fun.getName()).getName());
@@ -181,7 +181,7 @@ public class ParserLexerIntegrationTests {
             Program program = parser.parse();
             Position pos = new Position(0, 0);
             Block block = new Block(List.of(), pos);
-            FunctionDef fun = new FunctionDef("fun1", List.of(), block, pos);
+            UserFunctionDef fun = new UserFunctionDef("fun1", List.of(), block, pos);
             assertEquals(1, program.getFunctions().size());
             assertEquals(fun.getName(), program.getFunctions().get(fun.getName()).getName());
             assertEquals(1, eM.getErrors().size());
@@ -253,7 +253,7 @@ public class ParserLexerIntegrationTests {
             Expression expression = new IntLiteralExpression(1, pos);
             Statement statement = new ExpressionStatement(expression, pos);
             Block block = new Block(List.of(statement), pos);
-            FunctionDef fun = new FunctionDef("fun1", List.of(), block, pos);
+            UserFunctionDef fun = new UserFunctionDef("fun1", List.of(), block, pos);
             assertEquals(1, program.getFunctions().size());
             assertEquals(fun.getName(), program.getFunctions().get(fun.getName()).getName());
             assertEquals(1, (
@@ -282,7 +282,7 @@ public class ParserLexerIntegrationTests {
             Expression expression = new IntLiteralExpression(1, pos);
             Statement statement = new ExpressionStatement(expression, pos);
             Block block = new Block(List.of(statement), pos);
-            FunctionDef fun = new FunctionDef("fun1", List.of(), block, pos);
+            UserFunctionDef fun = new UserFunctionDef("fun1", List.of(), block, pos);
             assertEquals(1, program.getFunctions().size());
             assertEquals(fun.getName(), program.getFunctions().get(fun.getName()).getName());
             assertEquals(1, (
@@ -312,7 +312,7 @@ public class ParserLexerIntegrationTests {
             Expression expression = new IntLiteralExpression(1, pos);
             Statement statement = new ExpressionStatement(expression, pos);
             Block block = new Block(List.of(statement), pos);
-            FunctionDef fun = new FunctionDef("fun1", List.of(), block, pos);
+            UserFunctionDef fun = new UserFunctionDef("fun1", List.of(), block, pos);
             assertEquals(1, program.getFunctions().size());
             assertEquals(fun.getName(), program.getFunctions().get(fun.getName()).getName());
             assertEquals(1, (
@@ -359,10 +359,10 @@ public class ParserLexerIntegrationTests {
             Expression expression = new IntLiteralExpression(1, pos);
             Statement statement = new ExpressionStatement(expression, pos);
             Block block = new Block(List.of(statement), pos);
-            FunctionDef fun = new FunctionDef("fun1", List.of(), block, pos);
+            UserFunctionDef fun = new UserFunctionDef("fun1", List.of(), block, pos);
             assertEquals(1, program.getFunctions().size());
             assertEquals(fun.getName(), program.getFunctions().get(fun.getName()).getName());
-            List<Period> periods = (
+            Period period = (
                     (PeriodLiteralExpression) (
                             (ExpressionStatement) program
                                     .getFunctions().get(fun.getName())
@@ -371,10 +371,8 @@ public class ParserLexerIntegrationTests {
                                     .get(0)
                     ).getExpression()
             ).getValue();
-            Period periodDay = periods.get(0);
-            Period periodMinute = periods.get(1);
-            assertEquals(10, periodDay.getDay());
-            assertEquals(7, periodMinute.getSecond());
+            assertEquals(10, period.getDay());
+            assertEquals(7, period.getSecond());
             Date date = ((DateLiteralExpression) (
                     (ExpressionStatement) program
                             .getFunctions().get(fun.getName())
@@ -405,7 +403,7 @@ public class ParserLexerIntegrationTests {
             Expression expression = new IntLiteralExpression(1, pos);
             Statement statement = new ExpressionStatement(expression, pos);
             Block block = new Block(List.of(statement), pos);
-            FunctionDef fun = new FunctionDef("fun1", List.of(), block, pos);
+            UserFunctionDef fun = new UserFunctionDef("fun1", List.of(), block, pos);
             assertEquals(1, program.getFunctions().size());
             assertEquals(fun.getName(), program.getFunctions().get(fun.getName()).getName());
             assertEquals("name", (
@@ -434,7 +432,7 @@ public class ParserLexerIntegrationTests {
             Expression expression = new IntLiteralExpression(1, pos);
             Statement statement = new ExpressionStatement(expression, pos);
             Block block = new Block(List.of(statement), pos);
-            FunctionDef fun = new FunctionDef("fun1", List.of(), block, pos);
+            UserFunctionDef fun = new UserFunctionDef("fun1", List.of(), block, pos);
             assertEquals(1, program.getFunctions().size());
             assertEquals(fun.getName(), program.getFunctions().get(fun.getName()).getName());
             assertEquals("fun1", (
@@ -463,7 +461,7 @@ public class ParserLexerIntegrationTests {
             Expression expression = new IntLiteralExpression(1, pos);
             Statement statement = new ExpressionStatement(expression, pos);
             Block block = new Block(List.of(statement), pos);
-            FunctionDef fun = new FunctionDef("fun1", List.of(), block, pos);
+            UserFunctionDef fun = new UserFunctionDef("fun1", List.of(), block, pos);
             assertEquals(1, program.getFunctions().size());
             assertEquals(fun.getName(), program.getFunctions().get(fun.getName()).getName());
             assertEquals("fun1", (
@@ -493,7 +491,7 @@ public class ParserLexerIntegrationTests {
             Expression expression = new IntLiteralExpression(1, pos);
             Statement statement = new ExpressionStatement(expression, pos);
             Block block = new Block(List.of(statement), pos);
-            FunctionDef fun = new FunctionDef("fun1", List.of(), block, pos);
+            UserFunctionDef fun = new UserFunctionDef("fun1", List.of(), block, pos);
             assertEquals(1, program.getFunctions().size());
             assertEquals(fun.getName(), program.getFunctions().get(fun.getName()).getName());
             assertEquals("member1", (
@@ -550,7 +548,7 @@ public class ParserLexerIntegrationTests {
             Expression expression = new IntLiteralExpression(1, pos);
             Statement statement = new ExpressionStatement(expression, pos);
             Block block = new Block(List.of(statement), pos);
-            FunctionDef fun = new FunctionDef("fun1", List.of(), block, pos);
+            UserFunctionDef fun = new UserFunctionDef("fun1", List.of(), block, pos);
             AssignmentExpression assignmentExpression = (AssignmentExpression) (
                     (ExpressionStatement) program
                             .getFunctions().get(fun.getName())
@@ -602,7 +600,7 @@ public class ParserLexerIntegrationTests {
             Expression expression = new IntLiteralExpression(1, pos);
             Statement statement = new ExpressionStatement(expression, pos);
             Block block = new Block(List.of(statement), pos);
-            FunctionDef fun = new FunctionDef("fun1", List.of(), block, pos);
+            UserFunctionDef fun = new UserFunctionDef("fun1", List.of(), block, pos);
             NegationExpression negationExpression = (NegationExpression) (
                     (ExpressionStatement) program
                             .getFunctions().get(fun.getName())
@@ -646,7 +644,7 @@ public class ParserLexerIntegrationTests {
             Program program = parser.parse();
             Position pos = new Position(0, 0);
             Block block = new Block(List.of(), pos);
-            FunctionDef fun = new FunctionDef("fun1", List.of(), block, pos);
+            UserFunctionDef fun = new UserFunctionDef("fun1", List.of(), block, pos);
             MultiplicativeExpression multiplicativeExpression = (MultiplicativeExpression) (
                     (ExpressionStatement) program
                             .getFunctions().get(fun.getName())
@@ -674,7 +672,7 @@ public class ParserLexerIntegrationTests {
             Program program = parser.parse();
             Position pos = new Position(0, 0);
             Block block = new Block(List.of(), pos);
-            FunctionDef fun = new FunctionDef("fun1", List.of(), block, pos);
+            UserFunctionDef fun = new UserFunctionDef("fun1", List.of(), block, pos);
             MultiplicativeExpression multiplicativeExpression = (MultiplicativeExpression) (
                     (ExpressionStatement) program
                             .getFunctions().get(fun.getName())
@@ -723,7 +721,7 @@ public class ParserLexerIntegrationTests {
             Program program = parser.parse();
             Position pos = new Position(0, 0);
             Block block = new Block(List.of(), pos);
-            FunctionDef fun = new FunctionDef("fun1", List.of(), block, pos);
+            UserFunctionDef fun = new UserFunctionDef("fun1", List.of(), block, pos);
             AdditiveExpression additiveExpression = (AdditiveExpression) (
                     (ExpressionStatement) program
                             .getFunctions().get(fun.getName())
@@ -751,7 +749,7 @@ public class ParserLexerIntegrationTests {
             Program program = parser.parse();
             Position pos = new Position(0, 0);
             Block block = new Block(List.of(), pos);
-            FunctionDef fun = new FunctionDef("fun1", List.of(), block, pos);
+            UserFunctionDef fun = new UserFunctionDef("fun1", List.of(), block, pos);
             AdditiveExpression additiveExpression = (AdditiveExpression) (
                     (ExpressionStatement) program
                             .getFunctions().get(fun.getName())
@@ -798,7 +796,7 @@ public class ParserLexerIntegrationTests {
             Program program = parser.parse();
             Position pos = new Position(0, 0);
             Block block = new Block(List.of(), pos);
-            FunctionDef fun = new FunctionDef("fun1", List.of(), block, pos);
+            UserFunctionDef fun = new UserFunctionDef("fun1", List.of(), block, pos);
             ComparativeExpression comparativeExpression = (ComparativeExpression) (
                     (ExpressionStatement) program
                             .getFunctions().get(fun.getName())
@@ -843,7 +841,7 @@ public class ParserLexerIntegrationTests {
             Program program = parser.parse();
             Position pos = new Position(0, 0);
             Block block = new Block(List.of(), pos);
-            FunctionDef fun = new FunctionDef("fun1", List.of(), block, pos);
+            UserFunctionDef fun = new UserFunctionDef("fun1", List.of(), block, pos);
             AndExpression andExpression = (AndExpression) (
                     (ExpressionStatement) program
                             .getFunctions().get(fun.getName())
@@ -887,7 +885,7 @@ public class ParserLexerIntegrationTests {
             Program program = parser.parse();
             Position pos = new Position(0, 0);
             Block block = new Block(List.of(), pos);
-            FunctionDef fun = new FunctionDef("fun1", List.of(), block, pos);
+            UserFunctionDef fun = new UserFunctionDef("fun1", List.of(), block, pos);
             OrExpression orExpression = (OrExpression) (
                     (ExpressionStatement) program
                             .getFunctions().get(fun.getName())
@@ -931,7 +929,7 @@ public class ParserLexerIntegrationTests {
             Program program = parser.parse();
             Position pos = new Position(0, 0);
             Block block = new Block(List.of(), pos);
-            FunctionDef fun = new FunctionDef("fun1", List.of(), block, pos);
+            UserFunctionDef fun = new UserFunctionDef("fun1", List.of(), block, pos);
             AndExpression andExpression = (AndExpression) (
                     (ReturnStatement) program
                             .getFunctions().get(fun.getName())
@@ -957,7 +955,7 @@ public class ParserLexerIntegrationTests {
             Program program = parser.parse();
             Position pos = new Position(0, 0);
             Block block = new Block(List.of(), pos);
-            FunctionDef fun = new FunctionDef("fun1", List.of(), block, pos);
+            UserFunctionDef fun = new UserFunctionDef("fun1", List.of(), block, pos);
             IfStatement statement = (IfStatement) program
                             .getFunctions().get(fun.getName())
                             .getBody()
@@ -986,7 +984,7 @@ public class ParserLexerIntegrationTests {
             Program program = parser.parse();
             Position pos = new Position(0, 0);
             Block block = new Block(List.of(), pos);
-            FunctionDef fun = new FunctionDef("fun1", List.of(), block, pos);
+            UserFunctionDef fun = new UserFunctionDef("fun1", List.of(), block, pos);
             WhileStatement statement = (WhileStatement) program
                     .getFunctions().get(fun.getName())
                     .getBody()

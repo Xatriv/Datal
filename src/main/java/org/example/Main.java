@@ -52,13 +52,6 @@ public class Main {
 //                }
 //            }
 //            System.out.printf("%s \t%s%n",tok.getType().name(), tok.getPosition());
-//            for (var err: eM.getErrors()){
-//                System.out.printf("%s %s %s %s\n",
-//                        err.getErrorStagePrefix(),
-//                        err.getPosition().toString(),
-//                        err.getSeverity().toString(),
-//                        err.getMessage());
-//            }
 
 
             Parser parser = new Parser(commentLexer, eM);
@@ -67,7 +60,7 @@ public class Main {
 //            PrinterVisitor printer = new PrinterVisitor(fileName);
 //            program.accept(printer);
 //            System.out.println("Errors: ");
-//            eM.printErrors(Severity.INFO);
+            eM.printErrors(Severity.INFO);
         }
     }
 }

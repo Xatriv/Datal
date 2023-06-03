@@ -1,19 +1,54 @@
 main () {
-    print(1);
-    print(2.1);
-    print([This is a string.]);
-    print(20d);
-    print(2020y:1m:2d:3h:4':5");
-    print(1 + 1);
-    print(1 + 1.5);
-    print(2 * 2.5);
-    print(1 - 20);
-    print(1 / 2);
+    print([1 = ], 1);
+    print([2.1 = ], 2.1, [\n]);
+    print([This is a string.\n]);
+    print([20d = ], 20d, [\n]);
+    print([2020y:1m:2d:3h:4':5" = ], 2020y:1m:2d:3h:4':5", [\n]);
+    print([1 + 1 = ], 1 + 1, [\n]);
+    print([1 + 1.5 = ], 1 + 1.5, [\n]);
+    print([2 * 2.5 = ], 2 * 2.5, [\n]);
+    print([1 - 20 = ], 1 - 20, [\n]);
+    print([1 / 2 = ],  1 / 2, [\n]);
 
-    print(1 == 1);
-    print(2 != 3);
-    print(5 > 4);
-    print(6 < 7);
-    print(8 <= 9);
-    print(11 >= 10);
+    print([1 == 1 = ], 1 == 1, [\n]);
+    print([2 != 3 = ], 2 != 3, [\n]);
+    print([5 > 4 = ], 5 > 4, [\n]);
+    print([6 < 7 = ], 6 < 7, [\n]);
+    print([8 <= 9 = ], 8 <= 9, [\n]);
+    print([11 >= 10 = ], 11 >= 10, [\n]);
+    #print([11 >= 10 and 12 < 13 = ], 11 >= 10 and 12 < 13, [\n]);
+    #print([14 >= 15 and not (16 < 17) = ], 14 >= 15 and not (16 < 17), [\n]);
+    print([not (18 >= 19) or 20 > 21 = ], not (18 >= 19) or 20 > 21, [\n]);
+    if (1 == 1) {
+        print([This will print if: 1 == 1\n]);
+    }
+    if (1 == 2) {
+        print([This will print if: 1 == 2\n]);
+    } else {
+        print([This will print if not: 1 == 2\n]);
+    }
+    identifier=0;
+    print([identifier value: ], identifier, [\n]);
+    while (identifier <= 5){
+        printFormatted(identifier);
+        identifier = identifier + 1;
+    }
+    date1 = 2023Y:6M:10D:4h:8':9";
+    print([date1 = ], date1, [\n]);
+    date2 = 2023Y:6M:10D:5h:9':19";
+    print([date2 = ], date2, [\n]);
+    period1 = date2 - date1;
+    print([period1: date2 - date1 = ], period1, [\n]);
+    dateEra = 1Y:1M:1D:0h:0':0";
+    dateEra = dateEra + period1;
+    print([BeginningOfEra + period1 = ], dateEra, [\n]);
+    period2 = 10Y 4H 3" 5H;
+    print([period2 = 10Y 4H 3" 5H\n]);
+    print([period2.hour = ], period2.hour, [\n]);
+    period2.hour = 10;
+    print([After assigning 10 to period2.hour: period2.hour = ], period2.hour, [\n]);
+}
+
+printFormatted(ident) {
+    print([Identifier value within loop: ], ident, [\n]);
 }

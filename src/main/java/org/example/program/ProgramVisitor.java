@@ -2,7 +2,7 @@ package org.example.program;
 
 public interface ProgramVisitor {
     void visit(Program program);
-    void visit(FunctionDef functionDef);
+    void visit(UserFunctionDef functionDef);
     void visit(Block block);
     void visit(ExpressionStatement statement);
     void visit(IfStatement statement);
@@ -23,5 +23,10 @@ public interface ProgramVisitor {
     void visit(PeriodLiteralExpression expression);
     void visit(IdentifierExpression expression);
     void visit(FunctionCallExpression expression);
-
+    void visit(ReadStringFunctionDef readStringFunctionDef);
+    void visit(PrintFunctionDef printFunctionDef);
+    void visit(ReadIntFunctionDef readIntFunctionDef);
+    void visit(ReadDoubleFunctionDef readDoubleFunctionDef);
+    void visit(ReadDateFunctionDef readDateFunctionDef);
+    void visit(ReadPeriodFunctionDef readPeriodFunctionDef);
 }
