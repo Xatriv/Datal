@@ -56,11 +56,13 @@ main () {
 
     print([Fibonacci(7) = ], fibonacci(7), [\n]);
 
+    print(date1.calculateSecondsSinceNewEra(), [\n]);
+
     voidFun();
 
     justReturn();
-    print();
 
+    chain1();
 
 
     inputString = readString();
@@ -104,4 +106,21 @@ fibonacci(n){
 
 justReturn(){
     return;
+}
+
+chain1(){
+    int = 0;
+    chain2();
+    print([Chain1 int value = ], int, [\n]);
+}
+
+chain2(){
+    int = 1;
+    chain3();
+    print([Chain2 int value = ], int, [\n]);
+}
+
+chain3(){
+    int = 2;
+    print([Chain3 int value = ], int, [\n]);
 }

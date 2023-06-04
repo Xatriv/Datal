@@ -6,6 +6,9 @@ import org.example.types.Date;
 import org.example.types.Period;
 import org.junit.jupiter.api.Test;
 
+import java.util.Hashtable;
+import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 public class InterpreterTests {
@@ -900,7 +903,7 @@ public class InterpreterTests {
     }
 
     @Test
-    public void notTest() {
+    public void notLogicalTest() {
         ErrorManager eM = new ErrorManager();
         Interpreter interpreter = new Interpreter(eM);
         Position pos = new Position(0, 0);
@@ -914,4 +917,40 @@ public class InterpreterTests {
         assertEquals(interpreter.getLastResult(pos).getValue().getClass(), Boolean.class);
         assertEquals(false, (interpreter.getLastResult(pos).getValue()));
     }
+
+    @Test
+    public void notArithmeticalTest() {
+        ErrorManager eM = new ErrorManager();
+        Interpreter interpreter = new Interpreter(eM);
+        Position pos = new Position(0, 0);
+        Integer int1 = 3;
+        IntLiteralExpression intEx1 = new IntLiteralExpression(int1, pos);
+        NegationExpression negEx = new NegationExpression(NegationOperator.MINUS, intEx1, pos);
+        interpreter.visit(negEx);
+        assertEquals(interpreter.getLastResult(pos).getValue().getClass(), Integer.class);
+        assertEquals(-3, (interpreter.getLastResult(pos).getValue()));
+    }
+
+    @Test
+    public void assignmentTest() {
+        ErrorManager eM = new ErrorManager();
+        Interpreter interpreter = new Interpreter(eM);
+        Position pos = new Position(0, 0);
+        Integer int1 = 3;
+        IntLiteralExpression intEx1 = new IntLiteralExpression(int1, pos);
+        IdentifierExpression ident = new IdentifierExpression("variable", pos);
+        AssignmentExpression assEx = new AssignmentExpression(ident, intEx1, pos);
+        ExpressionStatement exStmt = new ExpressionStatement(assEx, pos);
+        FunctionCallExpression callEx = new FunctionCallExpression("func", List.of(), pos);
+        ExpressionStatement callStmt = new ExpressionStatement(callEx, pos);
+        Block block = new Block(List.of(exStmt) , pos);
+        Block mainBlock = new Block(List.of(callStmt) , pos);
+        UserFunctionDef func = new UserFunctionDef("func", List.of(), block, pos);
+        UserFunctionDef main = new UserFunctionDef("main", List.of(), mainBlock, pos);
+        Hashtable<String, FunctionDef> funcs = new Hashtable<>() {{ put("main", main); put("func", func); }};
+        Program program = new Program(funcs);
+        interpreter.visit(program);
+    }
+
+
 }

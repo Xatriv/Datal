@@ -285,7 +285,7 @@ public class Interpreter implements ProgramVisitor {
         if (operand instanceof Boolean && expression.getOperator() == NegationOperator.NOT) {
             lastResult = new InterpreterVisitationResult(!(Boolean) lastResult.getValue());
         } else if (operand instanceof Number && expression.getOperator() == NegationOperator.MINUS) {
-            lastResult = new InterpreterVisitationResult(-1 * (Double) lastResult.getValue());
+            lastResult = new InterpreterVisitationResult(OperationHandler.multiply(-1, lastResult.getValue()));
         } else {
             errorManager.reportError(
                     new InterpreterErrorInfo(
