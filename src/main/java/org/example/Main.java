@@ -4,6 +4,7 @@ import org.example.error.ErrorManager;
 import org.example.error.LexerErrorInfo;
 import org.example.error.Severity;
 import org.example.interpreter.Interpreter;
+import org.example.interpreter.PrinterVisitor;
 import org.example.lexer.CodeLexer;
 import org.example.lexer.CommentLexer;
 import org.example.parser.Parser;
@@ -59,7 +60,7 @@ public class Main {
             Interpreter interpreter = new Interpreter(eM, program);
 //            PrinterVisitor printer = new PrinterVisitor(fileName);
 //            program.accept(printer);
-//            System.out.println("Errors: ");
+            System.out.println("Errors: ");
             eM.printErrors(Severity.INFO);
         }
     }

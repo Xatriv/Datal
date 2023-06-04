@@ -386,7 +386,7 @@ p3 = 4d 7" 3m;          # SYNTAX ERROR: (line 1, column 14) unexpected token whi
 d1 = 2023Y:1M:1D:0H:0':0";
 p1 = 10D 1'; 
 d2 = d1 + p1;           # 2023 1M 11D 1';
-p2 = p1 / 2;            # 5d 30";
+p2 = p1 / 2;            # 5d;
 ```
 
 Incorrect uses:

@@ -26,9 +26,11 @@ public class ErrorManager {
     public void reportError(CodeErrorInfo err){
         errors.add(err);
         if (err.getSeverity() == Severity.ERROR){
+            printErrors(Severity.INFO);
             throw new CodeError(err);
         }
         if (0 <= maxErrors && maxErrors < errors.size()){
+            printErrors(Severity.INFO);
             throw new MaxErrorsExceededError(maxErrors);
         }
     }
@@ -69,6 +71,7 @@ public class ErrorManager {
     }
 
     public void printErrors(Severity minimumSeverity){
+        System.out.println("\n");
         for (var err : getErrors().stream().filter(
                 e-> e.getSeverity().ordinal() >= minimumSeverity.ordinal()).collect(Collectors.toList())) {
             System.out.printf("%s %s %s %s\n",

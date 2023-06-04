@@ -856,4 +856,62 @@ public class InterpreterTests {
         assertEquals(interpreter.getLastResult(pos).getValue().getClass(), Boolean.class);
         assertEquals(true, (interpreter.getLastResult(pos).getValue()));
     }
+
+    @Test
+    public void andTest() {
+        ErrorManager eM = new ErrorManager();
+        Interpreter interpreter = new Interpreter(eM);
+        Position pos = new Position(0, 0);
+        Integer int1 = 3;
+        Integer int2 = 3;
+        IntLiteralExpression intEx1 = new IntLiteralExpression(int1, pos);
+        IntLiteralExpression intEx2 = new IntLiteralExpression(int2, pos);
+        ComparativeExpression compEx1 = new ComparativeExpression(ComparisonOperator.EQUALS, intEx1, intEx2, pos);
+        Double double1 = 3.0;
+        Double double2 = 3.0;
+        DoubleLiteralExpression doubleEx1 = new DoubleLiteralExpression(double1, pos);
+        DoubleLiteralExpression doubleEx2 = new DoubleLiteralExpression(double2, pos);
+        ComparativeExpression compEx2 = new ComparativeExpression(ComparisonOperator.EQUALS, doubleEx1, doubleEx2, pos);
+        AndExpression andEx = new AndExpression(compEx1, compEx2, pos);
+        interpreter.visit(andEx);
+        assertEquals(interpreter.getLastResult(pos).getValue().getClass(), Boolean.class);
+        assertEquals(true, (interpreter.getLastResult(pos).getValue()));
+    }
+
+    @Test
+    public void orTest() {
+        ErrorManager eM = new ErrorManager();
+        Interpreter interpreter = new Interpreter(eM);
+        Position pos = new Position(0, 0);
+        Integer int1 = 3;
+        Integer int2 = 3;
+        IntLiteralExpression intEx1 = new IntLiteralExpression(int1, pos);
+        IntLiteralExpression intEx2 = new IntLiteralExpression(int2, pos);
+        ComparativeExpression compEx1 = new ComparativeExpression(ComparisonOperator.EQUALS, intEx1, intEx2, pos);
+        Double double1 = 3.0;
+        Double double2 = 300.0;
+        DoubleLiteralExpression doubleEx1 = new DoubleLiteralExpression(double1, pos);
+        DoubleLiteralExpression doubleEx2 = new DoubleLiteralExpression(double2, pos);
+        ComparativeExpression compEx2 = new ComparativeExpression(ComparisonOperator.EQUALS, doubleEx1, doubleEx2, pos);
+        OrExpression andEx = new OrExpression(compEx1, compEx2, pos);
+        interpreter.visit(andEx);
+        assertEquals(interpreter.getLastResult(pos).getValue().getClass(), Boolean.class);
+        assertEquals(true, (interpreter.getLastResult(pos).getValue()));
+    }
+
+    @Test
+    public void notTest() {
+        ErrorManager eM = new ErrorManager();
+        Interpreter interpreter = new Interpreter(eM);
+        Position pos = new Position(0, 0);
+        Integer int1 = 3;
+        Integer int2 = 3;
+        IntLiteralExpression intEx1 = new IntLiteralExpression(int1, pos);
+        IntLiteralExpression intEx2 = new IntLiteralExpression(int2, pos);
+        ComparativeExpression compEx1 = new ComparativeExpression(ComparisonOperator.EQUALS, intEx1, intEx2, pos);
+        NegationExpression negEx = new NegationExpression(NegationOperator.NOT, compEx1, pos);
+        interpreter.visit(negEx);
+        assertEquals(interpreter.getLastResult(pos).getValue().getClass(), Boolean.class);
+        assertEquals(false, (interpreter.getLastResult(pos).getValue()));
+    }
 }

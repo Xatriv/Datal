@@ -38,7 +38,7 @@ public class Period {
             while (index < string.length() && Character.isWhitespace(string.charAt(index))){
                 index++;
             }
-            while (index < string.length() && isDigit(string.charAt(index))) { //TODO repeated cond in while bad no good!
+            while (index < string.length() && isDigit(string.charAt(index))) {
                 int digit = string.charAt(index) - '0';
                 if ((Integer.MAX_VALUE - digit) / 10 < sum) {
                     return null;

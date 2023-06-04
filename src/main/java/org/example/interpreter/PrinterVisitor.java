@@ -50,8 +50,10 @@ public class PrinterVisitor implements ProgramVisitor {
         statement.getCondition().accept(this);
         print("THEN");
         statement.getIfBlock().accept(this);
-        print("ELSE");
-        statement.getElseBlock().accept(this);
+        if (statement.getElseBlock() != null){
+            print("ELSE");
+            statement.getElseBlock().accept(this);
+        }
         spaces--;
     }
 

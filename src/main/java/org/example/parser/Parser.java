@@ -332,13 +332,13 @@ public class Parser {
         if (!consumeIfExists(TokenType.RETURN)) return null;
         Position pos = lexer.getToken().getPosition();
         Expression expression = parseExpression();
-        if (expression == null) {
-            errorManager.reportError(new ParserErrorInfo(
-                    Severity.ERROR,
-                    lexer.getToken().getPosition(),
-                    "Expression missing in return statement."
-            ));
-        }
+//        if (expression == null) {
+//            errorManager.reportError(new ParserErrorInfo(
+//                    Severity.ERROR,
+//                    lexer.getToken().getPosition(),
+//                    "Expression missing in return statement."
+//            ));
+//        }
         consumeIfExists(TokenType.SEMICOLON);
         return new ReturnStatement(expression, pos);
     }
