@@ -61,10 +61,6 @@ public class Date {
         return 0;
     }
 
-    public static Period getInterval(Date start, Date end){
-        return new Period(0, 0, 0, 0, 0, 0, end.secondsSinceNewEra() - start.secondsSinceNewEra());
-    }
-
     public static Date fromString(String string){
         if (string.length() == 0){
             return null;
@@ -253,7 +249,7 @@ public class Date {
         //TODO completely broken for negatives
         int years = (getMonth() + months) / 12;
         addToYear(years);
-        setSecond((getSecond() + months) % 12);
+        setMonth((getMonth() + months) % 12);
     }
 
     private void addToDay(int days){
@@ -269,6 +265,9 @@ public class Date {
     private void addToHour(int hours){
         //TODO completely broken for negatives
         int days = (getHour() + hours) / 24;
+        if (getHour() + hours < 0){
+            days--;
+        }
         addToDay(days);
         setHour((getHour() + hours) % 24);
     }
@@ -276,21 +275,20 @@ public class Date {
     private void addToMinute(int minutes){
         //TODO completely broken for negatives
         int hours = (getMinute() + minutes) / 60;
+        if (getMinute() + minutes < 0){
+            hours--;
+        }
         addToHour(hours);
         setMinute((getMinute() + minutes) % 60);
     }
 
     private void addToSecond(int seconds){
-        if (getSecond() + seconds >= 0){
-            int minutes = (getSecond() + seconds) / 60;
-            addToMinute(minutes);
-            setSecond((getSecond() + seconds) % 60);
-        } else {
-            //TODO completely broken for negatives
-//            int minutes = (getSecond() + seconds) / 60;
-//            addToMinute(minutes);
-//            setSecond((getSecond() + seconds) % 60);
+        int minutes = (getSecond() + seconds) / 60;
+        if (getSecond() + seconds < 0){
+            minutes--;
         }
+        addToMinute(minutes);
+        setSecond((getSecond() + seconds) % 60);
     }
 
     private void addToSecond(long seconds){

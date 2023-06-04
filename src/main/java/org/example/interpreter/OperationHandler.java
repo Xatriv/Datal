@@ -30,6 +30,9 @@ public class OperationHandler {
         if (left instanceof Date && right instanceof Date) {
             return ((Date) left).subtract((Date) right);
         }
+        if (left instanceof Date && right instanceof Period) {
+            return ((Date) left).subtract((Period) right);
+        }
         if (left instanceof Period && right instanceof Period) {
             return ((Period) left).subtract((Period) right);
         }
@@ -69,6 +72,9 @@ public class OperationHandler {
     }
 
     public static Boolean equals(Object left, Object right) {
+        if (left instanceof String && right instanceof String) {
+            return left.equals(right);
+        }
         if (left instanceof Integer && right instanceof Integer) {
             return left.equals(right);
         }
@@ -85,6 +91,9 @@ public class OperationHandler {
     }
 
     public static Boolean notEqual(Object left, Object right) {
+        if (left instanceof String && right instanceof String) {
+            return ! left.equals(right);
+        }
         if (left instanceof Integer && right instanceof Integer) {
             return ! left.equals(right);
         }
@@ -92,10 +101,10 @@ public class OperationHandler {
             return ((Number) left).doubleValue() != ((Number) right).doubleValue();
         }
         if (left instanceof Period && right instanceof Period) {
-            return Period.compare((Period) left, (Period) right) == 0;
+            return Period.compare((Period) left, (Period) right) != 0;
         }
         if (left instanceof Date && right instanceof Date) {
-            return Date.compare((Date) left, (Date) right) == 0;
+            return Date.compare((Date) left, (Date) right) != 0;
         }
         return null;
     }
@@ -103,6 +112,9 @@ public class OperationHandler {
     public static Boolean lessThan(Object left, Object right) {
         if (left instanceof Number && right instanceof Number) {
             return ((Number) left).doubleValue() < ((Number) right).doubleValue();
+        }
+        if (left instanceof Period && right instanceof Period){
+            return Period.compare((Period) left, (Period) right) == -1;
         }
         if (left instanceof Date && right instanceof Date){
             return ((Date) left).secondsSinceNewEra() < ((Date) right).secondsSinceNewEra();
@@ -114,6 +126,9 @@ public class OperationHandler {
         if (left instanceof Number && right instanceof Number) {
             return ((Number) left).doubleValue() > ((Number) right).doubleValue();
         }
+        if (left instanceof Period && right instanceof Period){
+            return Period.compare((Period) left, (Period) right) == 1;
+        }
         if (left instanceof Date && right instanceof Date){
             return ((Date) left).secondsSinceNewEra() > ((Date) right).secondsSinceNewEra();
         }
@@ -124,6 +139,9 @@ public class OperationHandler {
         if (left instanceof Number && right instanceof Number) {
             return ((Number) left).doubleValue() <= ((Number) right).doubleValue();
         }
+        if (left instanceof Period && right instanceof Period){
+            return Period.compare((Period) left, (Period) right) != 1;
+        }
         if (left instanceof Date && right instanceof Date){
             return ((Date) left).secondsSinceNewEra() <= ((Date) right).secondsSinceNewEra();
         }
@@ -133,6 +151,9 @@ public class OperationHandler {
     public static Boolean moreOrEqualThan(Object left, Object right) {
         if (left instanceof Number && right instanceof Number) {
             return ((Number) left).doubleValue() >= ((Number) right).doubleValue();
+        }
+        if (left instanceof Period && right instanceof Period){
+            return Period.compare((Period) left, (Period) right) != -1;
         }
         if (left instanceof Date && right instanceof Date){
             return ((Date) left).secondsSinceNewEra() >= ((Date) right).secondsSinceNewEra();

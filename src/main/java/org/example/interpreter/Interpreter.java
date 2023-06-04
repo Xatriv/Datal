@@ -20,15 +20,19 @@ public class Interpreter implements ProgramVisitor {
     private InterpreterVisitationResult lastResult;
     private final Hashtable<String, FunctionDef> functionDefs = new Hashtable<>();
 
-    private InterpreterVisitationResult getLastResult(Position position){
+    public InterpreterVisitationResult getLastResult(Position position) {
         if (lastResult == null) {
             errorManager.reportError(
                     new InterpreterErrorInfo(
                             Severity.ERROR,
                             position,
-                            "Attempted assigning a null value."));
+                            "Attempted use of a null value."));
         }
         return lastResult;
+    }
+
+    public Interpreter(ErrorManager errorManager) {
+        this.errorManager = errorManager;
     }
 
     public Interpreter(ErrorManager errorManager, Program program) {
@@ -97,10 +101,10 @@ public class Interpreter implements ProgramVisitor {
     public void visit(Block block) {
 
         callStack.peek().getBlockContexts().add(0, new BlockContext());
-        var statements =  block.getStatements();
+        var statements = block.getStatements();
         for (int i = 0; i < statements.size() && !callStack.peek().getReturned(); i++) {
             statements.get(i).accept(this);
-            if (statements.get(i) instanceof ReturnStatement){
+            if (statements.get(i) instanceof ReturnStatement) {
                 callStack.peek().setReturned(true);
                 break;
             }
@@ -125,7 +129,7 @@ public class Interpreter implements ProgramVisitor {
                     )
             );
         }
-        if ((Boolean) lastResult.getValue()) {
+        if ((Boolean) getLastResult(statement.getPosition()).getValue()) {
             statement.getIfBlock().accept(this);
         } else if (statement.getElseBlock() != null) {
             statement.getElseBlock().accept(this);
@@ -145,7 +149,7 @@ public class Interpreter implements ProgramVisitor {
 
     @Override
     public void visit(ReturnStatement statement) {
-       statement.getExpression().accept(this);
+        statement.getExpression().accept(this);
     }
 
     @Override
@@ -231,7 +235,7 @@ public class Interpreter implements ProgramVisitor {
                     new InterpreterErrorInfo(
                             Severity.ERROR,
                             expression.getPosition(),
-                            String.format("Incompatible additive operands: %s + %s",
+                            String.format("Incompatible additive operands: %s +- %s",
                                     left.getClass().getSimpleName(), right.getClass().getSimpleName())));
         }
         lastResult = new InterpreterVisitationResult(result);
@@ -263,7 +267,7 @@ public class Interpreter implements ProgramVisitor {
                     new InterpreterErrorInfo(
                             Severity.ERROR,
                             expression.getPosition(),
-                            String.format("Incompatible operands in multiplicative expression: %s + %s",
+                            String.format("Incompatible operands in multiplicative expression: %s */ %s",
                                     left.getClass(), right.getClass())));
         }
         lastResult = new InterpreterVisitationResult(result);
@@ -282,7 +286,7 @@ public class Interpreter implements ProgramVisitor {
                             Severity.ERROR,
                             expression.getExpression().getPosition(),
                             String.format("Type error: Attempted negating %s with %s operator.",
-                                    expression.getOperator().name(), expression.getExpression().getClass())));
+                                    expression.getOperator().name(), expression.getExpression().getClass().getSimpleName())));
         }
     }
 
@@ -291,7 +295,7 @@ public class Interpreter implements ProgramVisitor {
         //TODO assign right to identifier from left
         var left = expression.getLeft();
         expression.getRight().accept(this);
-        var right = lastResult.getValue();
+        var right = getLastResult(expression.getRight().getPosition()).getValue();
         if (!(left instanceof IdentifierExpression) && !(left instanceof MemberExpression)) {
             errorManager.reportError(
                     new InterpreterErrorInfo(
@@ -301,94 +305,89 @@ public class Interpreter implements ProgramVisitor {
         }
         if (left instanceof IdentifierExpression) {
             String identifierName = ((IdentifierExpression) left).getName();
-            if (right != null) { //TODO maybe unnecessary - will do for now to handle void returns;
-                var activeBlock = callStack.peek().getBlockContexts()//TODO check if reference or value
-                        .stream()
-                        .filter(b -> b.getLocalVariables().containsKey(identifierName))
-                        .findFirst();
-                if (activeBlock.isEmpty()) {
-                    callStack.peek().getBlockContexts().get(0).addVariable(identifierName, right);
-                } else {
-                    activeBlock.get().getLocalVariables().put(identifierName, right);
-                }
-                lastResult = new InterpreterVisitationResult(right);
+            var activeBlock = callStack.peek().getBlockContexts()//TODO check if reference or value
+                    .stream()
+                    .filter(b -> b.getLocalVariables().containsKey(identifierName))
+                    .findFirst();
+            if (activeBlock.isEmpty()) {
+                callStack.peek().getBlockContexts().get(0).addVariable(identifierName, right);
+            } else {
+                activeBlock.get().getLocalVariables().put(identifierName, right);
             }
+            lastResult = new InterpreterVisitationResult(right);
         } else if (left instanceof MemberExpression) {
             IdentifierExpression objectIdentifier = (IdentifierExpression) ((MemberExpression) left).getObject();
-            if (right != null) { //TODO maybe unnecessary - will do for now to handle void returns;
-                var activeBlock = callStack.peek().getBlockContexts()//TODO check if reference or value
-                        .stream()
-                        .filter(b -> b.getLocalVariables().containsKey(objectIdentifier.getName()))
-                        .findFirst();
-                if (activeBlock.isEmpty()) {
+            var activeBlock = callStack.peek().getBlockContexts()//TODO check if reference or value
+                    .stream()
+                    .filter(b -> b.getLocalVariables().containsKey(objectIdentifier.getName()))
+                    .findFirst();
+            if (activeBlock.isEmpty()) {
 //                    callStack.peek().getBlockContexts().get(0).addVariable(objectIdentifier.getName(), right);
-                    //TODO throw error no such identifier
-                    return;
-                }
-                Object object = activeBlock.get().getLocalVariables().get(objectIdentifier.getName()); //put(identifier.getName(), right);
-                if (!(right instanceof Integer)) {
-                    //TODO throw error incompatible types
-                    return;
-                }
-                if (object instanceof Period) {
-                    if (((MemberExpression) left).getMember() instanceof IdentifierExpression) {
+                //TODO throw error no such identifier
+                return;
+            }
+            Object object = activeBlock.get().getLocalVariables().get(objectIdentifier.getName()); //put(identifier.getName(), right);
+            if (!(right instanceof Integer)) {
+                //TODO throw error incompatible types
+                return;
+            }
+            if (object instanceof Period) {
+                if (((MemberExpression) left).getMember() instanceof IdentifierExpression) {
 
-                        Method method = null;
-                        String memberName = ((IdentifierExpression) ((MemberExpression) left).getMember()).getName();
-                        String firstLetter = memberName.substring(0, 1);
-                        String restOfWord =  memberName.substring(1);
-                        String methodName = String.format("set%s%s", firstLetter.toUpperCase(), restOfWord);
-                        try {
-                            method = object.getClass().getMethod(methodName, Integer.class);
-                        } catch (NoSuchMethodException e) {
-                            errorManager.reportError(
-                                    new InterpreterErrorInfo(
-                                            Severity.ERROR,
-                                            ((MemberExpression) left).getPosition(),
-                                            String.format("Period does not have any field named \"%s\"", memberName)));
-                            return;
-                        }
-                        Object invocationResult;
-                        try {
-                            invocationResult = method.invoke(object, (Integer) right);
-                        } catch (IllegalAccessException | InvocationTargetException e){
-                            errorManager.reportError(
-                                    new InterpreterErrorInfo(
-                                            Severity.ERROR,
-                                            left.getPosition(),
-                                            String.format("Unable to access member \"%s\"", methodName)));
-                            return;
-                        }
-                        lastResult = new InterpreterVisitationResult(invocationResult);
+                    Method method;
+                    String memberName = ((IdentifierExpression) ((MemberExpression) left).getMember()).getName();
+                    String firstLetter = memberName.substring(0, 1);
+                    String restOfWord = memberName.substring(1);
+                    String methodName = String.format("set%s%s", firstLetter.toUpperCase(), restOfWord);
+                    try {
+                        method = object.getClass().getMethod(methodName, Integer.class);
+                    } catch (NoSuchMethodException e) {
+                        errorManager.reportError(
+                                new InterpreterErrorInfo(
+                                        Severity.ERROR,
+                                        left.getPosition(),
+                                        String.format("Period does not have any field named \"%s\"", memberName)));
+                        return;
                     }
-                    if ((((MemberExpression) left).getMember() instanceof FunctionCallExpression)){
-                        Method method;
-                        String methodName = ((FunctionCallExpression) ((MemberExpression) left).getMember()).getName();
-                        try {
-                            method = object.getClass().getMethod(methodName);
-                        } catch (NoSuchMethodException e) {
-                            errorManager.reportError(
-                                    new InterpreterErrorInfo(
-                                            Severity.ERROR,
-                                            ((MemberExpression) left).getPosition(),
-                                            String.format("Period does not have any method named \"%s\"", methodName)));
-                            return;
-                        }
-                        Object invocationResult;
-                        try {
-                            invocationResult = method.invoke(object);
-                        } catch (IllegalAccessException | InvocationTargetException e){
-                            errorManager.reportError(
-                                    new InterpreterErrorInfo(
-                                            Severity.ERROR,
-                                            ((MemberExpression) left).getPosition(),
-                                            String.format("Unable to access method \"%s\"", methodName)));
-                            return;
-                        }
-                        lastResult = new InterpreterVisitationResult(invocationResult);
+                    Object invocationResult;
+                    try {
+                        invocationResult = method.invoke(object, (Integer) right);
+                    } catch (IllegalAccessException | InvocationTargetException e) {
+                        errorManager.reportError(
+                                new InterpreterErrorInfo(
+                                        Severity.ERROR,
+                                        left.getPosition(),
+                                        String.format("Unable to access member \"%s\"", methodName)));
+                        return;
                     }
+                    lastResult = new InterpreterVisitationResult(invocationResult);
                 }
-
+                if ((((MemberExpression) left).getMember() instanceof FunctionCallExpression)) {
+                    Method method;
+                    String methodName = ((FunctionCallExpression) ((MemberExpression) left).getMember()).getName();
+                    try {
+                        method = object.getClass().getMethod(methodName);
+                    } catch (NoSuchMethodException e) {
+                        errorManager.reportError(
+                                new InterpreterErrorInfo(
+                                        Severity.ERROR,
+                                        left.getPosition(),
+                                        String.format("Period does not have any method named \"%s\"", methodName)));
+                        return;
+                    }
+                    Object invocationResult;
+                    try {
+                        invocationResult = method.invoke(object);
+                    } catch (IllegalAccessException | InvocationTargetException e) {
+                        errorManager.reportError(
+                                new InterpreterErrorInfo(
+                                        Severity.ERROR,
+                                        left.getPosition(),
+                                        String.format("Unable to access method \"%s\"", methodName)));
+                        return;
+                    }
+                    lastResult = new InterpreterVisitationResult(invocationResult);
+                }
             }
             lastResult = new InterpreterVisitationResult(right);
         }
@@ -402,9 +401,9 @@ public class Interpreter implements ProgramVisitor {
         if (lastResult.getValue() instanceof Period) {
             Period periodObj = (Period) lastResult.getValue();
             if (expression.getMember() instanceof IdentifierExpression) {
-                switch (((IdentifierExpression) expression.getMember()).getName()) {
-                    case "year": //TODO should it return only a value or reference to the value?
-                        //TODO reflection
+                var fieldName = ((IdentifierExpression) expression.getMember()).getName();
+                switch (fieldName) {
+                    case "year":
                         lastResult = new InterpreterVisitationResult(periodObj.getYear());
                         return;
                     case "month":
@@ -423,12 +422,69 @@ public class Interpreter implements ProgramVisitor {
                         lastResult = new InterpreterVisitationResult(periodObj.getSecond());
                         return;
                     default:
-                        errorManager.reportError(new InterpreterErrorInfo(Severity.ERROR, expression.getPosition(), "TODO")); //TODO
-                        return;
+                        errorManager.reportError(
+                                new InterpreterErrorInfo(
+                                        Severity.ERROR,
+                                        expression.getPosition(),
+                                        String.format("No such field in Period: %s", fieldName)));
+                }
+            } else if (expression.getMember() instanceof FunctionCallExpression) {
+                var methodName = ((FunctionCallExpression) expression.getMember()).getName();
+                switch (methodName) {
+                    case "getDifference":
+                        lastResult = new InterpreterVisitationResult(periodObj.getAbsolutePeriodDifference());
+                        break;
+                    default:
+                        errorManager.reportError(
+                                new InterpreterErrorInfo(
+                                        Severity.ERROR,
+                                        expression.getPosition(),
+                                        String.format("No such method in Period: %s", methodName)));
                 }
             }
         } else if (lastResult.getValue() instanceof Date) {
-            Date dateObj = (Date) lastResult.getValue(); //TODO
+            Date dateObj = (Date) lastResult.getValue();
+            if (expression.getMember() instanceof IdentifierExpression) {
+                var fieldName = ((IdentifierExpression) expression.getMember()).getName();
+                switch (fieldName) {
+                    case "year":
+                        lastResult = new InterpreterVisitationResult(dateObj.getYear());
+                        return;
+                    case "month":
+                        lastResult = new InterpreterVisitationResult(dateObj.getMonth());
+                        return;
+                    case "day":
+                        lastResult = new InterpreterVisitationResult(dateObj.getDay());
+                        return;
+                    case "hour":
+                        lastResult = new InterpreterVisitationResult(dateObj.getHour());
+                        return;
+                    case "minute":
+                        lastResult = new InterpreterVisitationResult(dateObj.getMinute());
+                        return;
+                    case "second":
+                        lastResult = new InterpreterVisitationResult(dateObj.getSecond());
+                        return;
+                    default:
+                        errorManager.reportError(
+                                new InterpreterErrorInfo(
+                                        Severity.ERROR,
+                                        expression.getPosition(),
+                                        String.format("No such field in Date: %s", fieldName)));
+                }
+            } else if (expression.getMember() instanceof FunctionCallExpression) {
+                var methodName = ((FunctionCallExpression) expression.getMember()).getName();
+                switch (methodName) {
+                    case "getSecondsSinceNewEra":
+                        lastResult = new InterpreterVisitationResult(dateObj.secondsSinceNewEra());
+                    default:
+                        errorManager.reportError(
+                                new InterpreterErrorInfo(
+                                        Severity.ERROR,
+                                        expression.getPosition(),
+                                        String.format("No such field in Date: %s", methodName)));
+                }
+            }
         }
     }
 
