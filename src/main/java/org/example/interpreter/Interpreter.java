@@ -17,10 +17,18 @@ public class Interpreter implements ProgramVisitor {
     private final ErrorManager errorManager;
 
     private final Stack<FunctionCallContext> callStack = new Stack<>();
-    private InterpreterVisitationResult lastResult;
+    private Value lastResult;
     private final Hashtable<String, FunctionDef> functionDefs = new Hashtable<>();
 
-    public InterpreterVisitationResult getLastResult(Position position) {
+    private Value memberContext;
+
+    private Value moveLastResult() {
+        Value value = lastResult;
+        lastResult = null;
+        return value;
+    }
+
+    public Value getLastResult(Position position) {
         if (lastResult.getValue() == null) {
             errorManager.reportError(
                     new InterpreterErrorInfo(
@@ -77,6 +85,11 @@ public class Interpreter implements ProgramVisitor {
         mainCall.accept(this);
     }
 
+    private void prepareBlockContext() {
+        BlockContext context = new BlockContext();
+        callStack.peek().getBlockContexts().add(0, context);
+    }
+
     @Override
     public void visit(UserFunctionDef functionDef) {
         if (functionDef.getParameters().size() != callStack.peek().getArguments().size()) {
@@ -87,30 +100,33 @@ public class Interpreter implements ProgramVisitor {
                             String.format("Mismatched arguments. Function takes %d parameters, but %d were provided ",
                                     functionDef.getParameters().size(), callStack.peek().getArguments().size())));
         }
-        BlockContext context = new BlockContext();
+        prepareBlockContext();
         for (int i = 0; i < functionDef.getParameters().size(); i++) {
-            context.addVariable(functionDef.getParameters().get(i), callStack.peek().getArguments().get(i));
+            addVariableToBlockContext(callStack.peek().getArguments().get(i), functionDef.getParameters().get(i));
         }
-        callStack.peek().getBlockContexts().add(context);
 
         functionDef.getBody().accept(this);
-        callStack.peek().getBlockContexts().clear();
+        deleteBlockContext();
+    }
+
+    private void deleteBlockContext() {
+        callStack.peek().getBlockContexts().remove(0);
     }
 
     @Override
     public void visit(Block block) {
-        callStack.peek().getBlockContexts().add(0, new BlockContext());
+        prepareBlockContext();
         var statements = block.getStatements();
         for (int i = 0; i < statements.size() && !callStack.peek().getReturned(); i++) {
             statements.get(i).accept(this);
             if (statements.get(i) instanceof ReturnStatement) {
                 callStack.peek().setReturned(true);
                 break;
-            } else if (i == statements.size()-1) {
-                lastResult = new InterpreterVisitationResult(null);
+            } else if (i == statements.size() - 1) {
+                lastResult = new Value(null);
             }
         }
-        callStack.peek().getBlockContexts().remove(0);
+        deleteBlockContext();
     }
 
     @Override
@@ -150,10 +166,10 @@ public class Interpreter implements ProgramVisitor {
 
     @Override
     public void visit(ReturnStatement statement) {
-        if (statement.getExpression() != null){
+        if (statement.getExpression() != null) {
             statement.getExpression().accept(this);
         } else {
-            lastResult = new InterpreterVisitationResult(null);
+            lastResult = new Value(null);
         }
     }
 
@@ -162,12 +178,12 @@ public class Interpreter implements ProgramVisitor {
         expression.getLeftExpression().accept(this);
         verifyInstance(lastResult.getValue(), List.of(Boolean.class), expression.getPosition());
         if ((Boolean) lastResult.getValue()) {
-            lastResult = new InterpreterVisitationResult(true);
+            lastResult = new Value(true);
             return;
         }
         expression.getRightExpression().accept(this);
         verifyInstance(lastResult.getValue(), List.of(Boolean.class), expression.getPosition());
-        lastResult = new InterpreterVisitationResult(lastResult.getValue());
+        lastResult = new Value(lastResult.getValue());
     }
 
     @Override
@@ -175,12 +191,12 @@ public class Interpreter implements ProgramVisitor {
         expression.getLeftExpression().accept(this);
         verifyInstance(lastResult.getValue(), List.of(Boolean.class), expression.getPosition());
         if (!(Boolean) lastResult.getValue()) {
-            lastResult = new InterpreterVisitationResult(false);
+            lastResult = new Value(false);
             return;
         }
         expression.getRightExpression().accept(this);
         verifyInstance(lastResult.getValue(), List.of(Boolean.class), expression.getPosition());
-        lastResult = new InterpreterVisitationResult(lastResult.getValue());
+        lastResult = new Value(lastResult.getValue());
     }
 
     @Override
@@ -220,7 +236,7 @@ public class Interpreter implements ProgramVisitor {
                     )
             );
         }
-        lastResult = new InterpreterVisitationResult(result);
+        lastResult = new Value(result);
     }
 
     @Override
@@ -243,7 +259,7 @@ public class Interpreter implements ProgramVisitor {
                             String.format("Incompatible additive operands: %s +- %s",
                                     left.getClass().getSimpleName(), right.getClass().getSimpleName())));
         }
-        lastResult = new InterpreterVisitationResult(result);
+        lastResult = new Value(result);
     }
 
     @Override
@@ -275,7 +291,7 @@ public class Interpreter implements ProgramVisitor {
                             String.format("Incompatible operands in multiplicative expression: %s */ %s",
                                     left.getClass(), right.getClass())));
         }
-        lastResult = new InterpreterVisitationResult(result);
+        lastResult = new Value(result);
     }
 
     @Override
@@ -283,9 +299,9 @@ public class Interpreter implements ProgramVisitor {
         expression.getExpression().accept(this);
         Object operand = getLastResult(expression.getExpression().getPosition()).getValue();
         if (operand instanceof Boolean && expression.getOperator() == NegationOperator.NOT) {
-            lastResult = new InterpreterVisitationResult(!(Boolean) lastResult.getValue());
+            lastResult = new Value(!(Boolean) lastResult.getValue());
         } else if (operand instanceof Number && expression.getOperator() == NegationOperator.MINUS) {
-            lastResult = new InterpreterVisitationResult(OperationHandler.multiply(-1, lastResult.getValue()));
+            lastResult = new Value(OperationHandler.multiply(-1, lastResult.getValue()));
         } else {
             errorManager.reportError(
                     new InterpreterErrorInfo(
@@ -326,10 +342,56 @@ public class Interpreter implements ProgramVisitor {
                             String.format("Unable to access member \"%s\"", methodName)));
             return;
         }
-        lastResult = new InterpreterVisitationResult(invocationResult);
+        lastResult = new Value(invocationResult);
     }
 
-    private void invokeGetter(MemberExpression expression, BlockContext context) {
+    private void invokePeriodGetter(Period period, String name, Position position) {
+        switch (name) {
+            case "year":
+                lastResult = new Value(period.getYear());
+            case "month":
+                lastResult = new Value(period.getMonth());
+            case "day":
+                lastResult = new Value(period.getDay());
+            case "hour":
+                lastResult = new Value(period.getHour());
+            case "minute":
+                lastResult = new Value(period.getMinute());
+            case "second":
+                lastResult = new Value(period.getSecond());
+            default:
+                errorManager.reportError(
+                        new InterpreterErrorInfo(
+                                Severity.ERROR,
+                                position,
+                                String.format("Period does not have any field named \"%s\"", name)));
+        }
+    }
+
+    private void invokeDateGetter(Date date, String name, Position position) {
+        switch (name) {
+            case "year":
+                lastResult = new Value(date.getYear());
+            case "month":
+                lastResult = new Value(date.getMonth());
+            case "day":
+                lastResult = new Value(date.getDay());
+            case "hour":
+                lastResult = new Value(date.getHour());
+            case "minute":
+                lastResult = new Value(date.getMinute());
+            case "second":
+                lastResult = new Value(date.getSecond());
+            default:
+                errorManager.reportError(
+                        new InterpreterErrorInfo(
+                                Severity.ERROR,
+                                position,
+                                String.format("Date does not have any field named \"%s\"", name)));
+        }
+    }
+
+    private void invokeGetterold(MemberExpression expression, BlockContext context) {
         Method method;
         String objectName = ((IdentifierExpression) (expression.getObject())).getName();
         String memberName = ((IdentifierExpression) (expression.getMember())).getName();
@@ -359,38 +421,33 @@ public class Interpreter implements ProgramVisitor {
                             String.format("Unable to access member \"%s\"", methodName)));
             return;
         }
-        lastResult = new InterpreterVisitationResult(invocationResult);
+        lastResult = new Value(invocationResult);
     }
 
-    private void invokeMethod(MemberExpression expression, BlockContext context) {
-        String objectName = ((IdentifierExpression) (expression.getObject())).getName();
-        Object object =  context.getLocalVariables().get(objectName);
-        String methodName = ((FunctionCallExpression) (expression.getMember())).getName();
-        if ( object instanceof Period){
-            if (methodName.equals("getDifference")){
-                lastResult = new InterpreterVisitationResult (((Period) object).getAbsolutePeriodDifference());
-                return;
-            }
-            new InterpreterErrorInfo(
-                    Severity.ERROR,
-                    expression.getPosition(),
-                    String.format("Period does not have any field named \"%s\"", methodName));
+    private void invokePeriodMethod(Period period, String methodName, List<Object> arguments, Position position) {
+        switch (methodName) {
+            case "getDifference":
+                lastResult = new Value(period.getAbsolutePeriodDifference());
+                break;
+            default:
+                new InterpreterErrorInfo(
+                        Severity.ERROR,
+                        position,
+                        String.format("Period does not have any method named \"%s\"", methodName));
         }
-        if (object instanceof Date) {
-            if (methodName.equals("calculateSecondsSinceNewEra")){
-                lastResult = new InterpreterVisitationResult (((Date) object).secondsSinceNewEra());
-                return;
-            }
-            new InterpreterErrorInfo(
-                    Severity.ERROR,
-                    expression.getPosition(),
-                    String.format("Date does not have any field named \"%s\"", methodName));
+    }
+
+    private void invokeDateMethod(Date date, String methodName, List<Object> arguments, Position position) {
+        switch (methodName) {
+            case "calculateSecondsSinceNewEra":
+                lastResult = new Value(date.secondsSinceNewEra());
+                break;
+            default:
+                new InterpreterErrorInfo(
+                        Severity.ERROR,
+                        position,
+                        String.format("Date does not have any method named \"%s\"", methodName));
         }
-        new InterpreterErrorInfo(
-                Severity.ERROR,
-                expression.getPosition(),
-                String.format("Object \"%s\" does not have any field named \"%s\"",
-                        object.getClass().getSimpleName(), methodName));
     }
 
     @Override
@@ -400,20 +457,28 @@ public class Interpreter implements ProgramVisitor {
         expression.getRight().accept(this);
         var rightResult = getLastResult(expression.getRight().getPosition()).getValue();
         if (left instanceof IdentifierExpression) {
+            left.accept(this);
             String identifierName = ((IdentifierExpression) left).getName();
-            var activeBlock = callStack.peek().getBlockContexts()
-                    .stream()
-                    .filter(b -> b.getLocalVariables().containsKey(identifierName))
-                    .findFirst();
-            if (activeBlock.isEmpty()) {
-                callStack.peek().getBlockContexts().get(0).addVariable(identifierName, rightResult);
+            if (lastResult.getValue() == null) {
+                addVariableToBlockContext(rightResult, identifierName);
             } else {
-                activeBlock.get().getLocalVariables().put(identifierName, rightResult);
+                //This is wrong, this should assign rightResult to a variable on the left
+                 lastResult.getValue(). =  rightResult);
+                 lastResult =  null;
             }
-            lastResult = new InterpreterVisitationResult(rightResult);
             return;
         }
         if (left instanceof MemberExpression) {
+            left.accept(this);
+            if (lastResult.getValue() == null) {
+                errorManager.reportError(
+                        new InterpreterErrorInfo(
+                                Severity.ERROR,
+                                left.getPosition(),
+                                String.format("Undefined variable: %s", "TODO"))); //TODO
+            }
+
+            //TODO idk if keep the following
             Object object = ((MemberExpression) left).getObject();
             verifyInstance(object, List.of(IdentifierExpression.class), left.getPosition());
             String objectName = ((IdentifierExpression) object).getName();
@@ -422,71 +487,46 @@ public class Interpreter implements ProgramVisitor {
                     .filter(b -> b.getLocalVariables().containsKey(objectName))
                     .findFirst();
             if (activeBlock.isEmpty()) {
-                errorManager.reportError(
-                        new InterpreterErrorInfo(
-                                Severity.ERROR,
-                                left.getPosition(),
-                                String.format("Undefined variable: %s", objectName)));
+
             } else {
                 invokeSetter((MemberExpression) left, rightResult, activeBlock.get());
-                lastResult = new InterpreterVisitationResult(rightResult);
+                lastResult = new Value(rightResult);
             }
         }
 
+    }
+
+    private void addVariableToBlockContext(Object variable, String identifierName) {
+        callStack.peek().getBlockContexts().get(0).addVariable(identifierName, new Value(variable));
     }
 
 
     @Override
     public void visit(MemberExpression expression) {
         expression.getObject().accept(this);
-        verifyInstance(expression.getObject(), List.of(IdentifierExpression.class, FunctionCallExpression.class), expression.getPosition());
-        if (expression.getMember() instanceof IdentifierExpression) {
-            var objectName = ((IdentifierExpression) expression.getObject()).getName();
-            var activeBlock = callStack.peek().getBlockContexts()
-                    .stream()
-                    .filter(b -> b.getLocalVariables().containsKey(objectName))
-                    .findFirst();
-            if (activeBlock.isEmpty()) {
-                errorManager.reportError(
-                        new InterpreterErrorInfo(
-                                Severity.ERROR,
-                                expression.getPosition(),
-                                String.format("Undefined variable: %s", objectName)));
-            } else {
-                invokeGetter(expression, activeBlock.get());
-            }
-        } else if (expression.getMember() instanceof FunctionCallExpression) {
-            var objectName = ((IdentifierExpression) expression.getObject()).getName();
-            var activeBlock = callStack.peek().getBlockContexts()
-                    .stream()
-                    .filter(b -> b.getLocalVariables().containsKey(objectName))
-                    .findFirst();
-            if (activeBlock.isEmpty()) {
-                errorManager.reportError(
-                        new InterpreterErrorInfo(
-                                Severity.ERROR,
-                                expression.getPosition(),
-                                String.format("Undefined variable: %s", objectName)));
-            } else {
-                invokeMethod(expression, activeBlock.get());
-            }
-        }
+//        verifyInstance(expression.getObject(), List.of(IdentifierExpression.class, FunctionCallExpression.class), expression.getPosition());
+        verifyInstance(lastResult.getValue(), List.of(Period.class, Date.class), expression.getPosition());
+        memberContext = moveLastResult();
+        expression.getMember().accept(this);
+
+
+
     }
 
 
     @Override
     public void visit(IntLiteralExpression expression) {
-        lastResult = new InterpreterVisitationResult(expression.getValue());
+        lastResult = new Value(expression.getValue());
     }
 
     @Override
     public void visit(DoubleLiteralExpression expression) {
-        lastResult = new InterpreterVisitationResult(expression.getValue());
+        lastResult = new Value(expression.getValue());
     }
 
     @Override
     public void visit(StringLiteralExpression expression) {
-        lastResult = new InterpreterVisitationResult(expression.getValue());
+        lastResult = new Value(expression.getValue());
     }
 
     @Override
@@ -500,49 +540,72 @@ public class Interpreter implements ProgramVisitor {
                             expression.getPosition(),
                             e.getMessage()));
         }
-        lastResult = new InterpreterVisitationResult(expression.getValue());
+        lastResult = new Value(expression.getValue());
     }
 
     @Override
     public void visit(PeriodLiteralExpression expression) {
-        lastResult = new InterpreterVisitationResult(expression.getValue());
+        lastResult = new Value(expression.getValue());
     }
 
     @Override
     public void visit(IdentifierExpression expression) {
-        for (BlockContext context : callStack.peek().getBlockContexts()) {
-            var value = context.getLocalVariables().get(expression.getName());
-            if (value != null) {
-                lastResult = new InterpreterVisitationResult(value);
-                return;
+        if (memberContext != null) {
+            if (memberContext.getValue() instanceof Period) {
+                invokePeriodGetter((Period) memberContext.getValue(), expression.getName(), expression.getPosition());
+//                invokePeriodMethod( ((Period) memberContext.getValue()), expression.getName(), arguments, expression.getPosition());
+            }
+            if (memberContext.getValue() instanceof Date) {
+                invokeDateGetter((Date) memberContext.getValue(), expression.getName(), expression.getPosition());
+//                invokeDateMethod( ((Date) memberContext.getValue()), expression.getName(), arguments, expression.getPosition());
             }
         }
-        errorManager.reportError(
-                new InterpreterErrorInfo(
-                        Severity.ERROR,
-                        expression.getPosition(),
-                        String.format("Undefined variable: %s", expression.getName())));
+
+        for (BlockContext context : callStack.peek().getBlockContexts()) {
+            Value value = context.getLocalVariables().get(expression.getName());
+            if (value != null) {
+                lastResult = value;
+                return;
+//            }
+            }
+            lastResult = new Value(null);
+//        errorManager.reportError(
+//                new InterpreterErrorInfo(
+//                        Severity.ERROR,
+//                        expression.getPosition(),
+//                        String.format("Undefined variable: %s", expression.getName())));
+        }
     }
 
     @Override
     public void visit(FunctionCallExpression expression) {
-        FunctionDef function;
-        if ((function = functionDefs.get(expression.getName())) == null) {
-            errorManager.reportError(
-                    new InterpreterErrorInfo(
-                            Severity.ERROR,
-                            expression.getPosition(),
-                            String.format("Reference to an undefined function: %s", expression.getName())));
-            return;
-        }
         List<Object> arguments = new ArrayList<>(List.of());
         for (var arg : expression.getArguments()) {
             arg.accept(this);
-            arguments.add(getLastResult(arg.getPosition()).getValue());
+            arguments.add(moveLastResult().getValue());
+//            arguments.add(getLastResult(arg.getPosition()).getValue());
         }
-        callStack.push(new FunctionCallContext(arguments));
-        function.accept(this);
-        callStack.pop();
+        if (memberContext != null) {
+            if (memberContext.getValue() instanceof Period) {
+                invokePeriodMethod(((Period) memberContext.getValue()), expression.getName(), arguments, expression.getPosition());
+            }
+            if (memberContext.getValue() instanceof Date) {
+                invokeDateMethod(((Date) memberContext.getValue()), expression.getName(), arguments, expression.getPosition());
+            }
+        } else {
+            FunctionDef function;
+            if ((function = functionDefs.get(expression.getName())) == null) {
+                errorManager.reportError(
+                        new InterpreterErrorInfo(
+                                Severity.ERROR,
+                                expression.getPosition(),
+                                String.format("Reference to an undefined function: %s", expression.getName())));
+                return;
+            }
+            callStack.push(new FunctionCallContext(arguments));
+            function.accept(this);
+            callStack.pop();
+        }
     }
 
     private void reportWarnIfArgsInReadFunction() {
@@ -562,7 +625,7 @@ public class Interpreter implements ProgramVisitor {
         reportWarnIfArgsInReadFunction();
         Scanner scanner = new Scanner(System.in);
         String stringValue = scanner.nextLine();
-        lastResult = new InterpreterVisitationResult(stringValue);
+        lastResult = new Value(stringValue);
     }
 
     @Override
@@ -581,7 +644,7 @@ public class Interpreter implements ProgramVisitor {
                     )
             );
         }
-        lastResult = new InterpreterVisitationResult(intValue);
+        lastResult = new Value(intValue);
     }
 
     @Override
@@ -600,7 +663,7 @@ public class Interpreter implements ProgramVisitor {
                     )
             );
         }
-        lastResult = new InterpreterVisitationResult(doubleValue);
+        lastResult = new Value(doubleValue);
     }
 
     @Override
@@ -617,7 +680,7 @@ public class Interpreter implements ProgramVisitor {
                     )
             );
         }
-        lastResult = new InterpreterVisitationResult(dateValue);
+        lastResult = new Value(dateValue);
     }
 
     @Override
@@ -634,7 +697,7 @@ public class Interpreter implements ProgramVisitor {
                     )
             );
         }
-        lastResult = new InterpreterVisitationResult(periodValue);
+        lastResult = new Value(periodValue);
     }
 
     @Override

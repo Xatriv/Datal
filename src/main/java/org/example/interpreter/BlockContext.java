@@ -6,13 +6,13 @@ import java.util.Hashtable;
 
 public class BlockContext implements Scope{
     @Getter
-    final Hashtable<String, Object> localVariables;
+    final Hashtable<String, Value> localVariables;
 
     BlockContext(){
        localVariables = new Hashtable<>();
     }
 
-    void addVariable(String name, Object variable) {
+    void addVariable(String name, Value variable) {
         localVariables.put(name, variable);
     }
 
