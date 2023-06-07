@@ -460,8 +460,8 @@ public class ParserTests {
                                 .get(0)
                 ).getExpression()
         ).getValue();
-        assertEquals(10, period.getDay());
-        assertEquals(7, period.getSecond());
+        assertEquals(10, period.getDayReference().getValue());
+        assertEquals(7, period.getSecondReference().getValue());
         Date date = ((DateLiteralExpression) (
                 (ExpressionStatement) program
                         .getFunctions().get(fun.getName())
@@ -469,13 +469,13 @@ public class ParserTests {
                         .getStatements()
                         .get(1)
         ).getExpression()).getValue();
-        assertTrue(date.isAD());
-        assertEquals(2022, date.getYear());
-        assertEquals(1, date.getMonth());
-        assertEquals(2, date.getDay());
-        assertEquals(3, date.getHour());
-        assertEquals(4, date.getMinute());
-        assertEquals(5, date.getSecond());
+        assertTrue((Boolean) date.getIsADReference().getValue());
+        assertEquals(2022, date.getYearReference().getValue());
+        assertEquals(1, date.getMonthReference().getValue());
+        assertEquals(2, date.getDayReference().getValue());
+        assertEquals(3, date.getHourReference().getValue());
+        assertEquals(4, date.getMinuteReference().getValue());
+        assertEquals(5, date.getSecondReference().getValue());
     }
 
     @Test
@@ -937,7 +937,7 @@ public class ParserTests {
     }
 
     @Test
-    public void additiveExpressionChainedTest() throws IOException { //TODO
+    public void additiveExpressionChainedTest() throws IOException {
         Position pos = new Position(0, 0);
         List<Token> tokens = Arrays.asList(
                 new IdentifierToken("fun1", pos),

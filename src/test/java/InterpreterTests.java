@@ -133,13 +133,13 @@ public class InterpreterTests {
         MultiplicativeExpression expression = new MultiplicativeExpression(MultiplicativeOperator.MULTIPLY, expression1, expression2, pos);
         interpreter.visit(expression);
         assertEquals(interpreter.getLastResult(pos).getValue().getClass(), Period.class);
-        assertEquals(2, ((Period) interpreter.getLastResult(pos).getValue()).getYear());
-        assertEquals(4, ((Period) interpreter.getLastResult(pos).getValue()).getMonth());
-        assertEquals(6, ((Period) interpreter.getLastResult(pos).getValue()).getDay());
-        assertEquals(8, ((Period) interpreter.getLastResult(pos).getValue()).getHour());
-        assertEquals(10, ((Period) interpreter.getLastResult(pos).getValue()).getMinute());
-        assertEquals(12, ((Period) interpreter.getLastResult(pos).getValue()).getSecond());
-        assertEquals(20L, ((Period) interpreter.getLastResult(pos).getValue()).getAbsolutePeriodDifference());
+        assertEquals(2, ((Period) interpreter.getLastResult(pos).getValue()).getYearReference().getValue());
+        assertEquals(4, ((Period) interpreter.getLastResult(pos).getValue()).getMonthReference().getValue());
+        assertEquals(6, ((Period) interpreter.getLastResult(pos).getValue()).getDayReference().getValue());
+        assertEquals(8, ((Period) interpreter.getLastResult(pos).getValue()).getHourReference().getValue());
+        assertEquals(10, ((Period) interpreter.getLastResult(pos).getValue()).getMinuteReference().getValue());
+        assertEquals(12, ((Period) interpreter.getLastResult(pos).getValue()).getSecondReference().getValue());
+        assertEquals(20L, ((Period) interpreter.getLastResult(pos).getValue()).getAbsolutePeriodDifferenceReference().getValue());
     }
 
     @Test
@@ -153,13 +153,13 @@ public class InterpreterTests {
         MultiplicativeExpression expression = new MultiplicativeExpression(MultiplicativeOperator.DIVIDE, expression1, expression2, pos);
         interpreter.visit(expression);
         assertEquals(interpreter.getLastResult(pos).getValue().getClass(), Period.class);
-        assertEquals(0, ((Period) interpreter.getLastResult(pos).getValue()).getYear());
-        assertEquals(1, ((Period) interpreter.getLastResult(pos).getValue()).getMonth());
-        assertEquals(1, ((Period) interpreter.getLastResult(pos).getValue()).getDay());
-        assertEquals(2, ((Period) interpreter.getLastResult(pos).getValue()).getHour());
-        assertEquals(2, ((Period) interpreter.getLastResult(pos).getValue()).getMinute());
-        assertEquals(3, ((Period) interpreter.getLastResult(pos).getValue()).getSecond());
-        assertEquals(5L, ((Period) interpreter.getLastResult(pos).getValue()).getAbsolutePeriodDifference());
+        assertEquals(0, ((Period) interpreter.getLastResult(pos).getValue()).getYearReference().getValue());
+        assertEquals(1, ((Period) interpreter.getLastResult(pos).getValue()).getMonthReference().getValue());
+        assertEquals(1, ((Period) interpreter.getLastResult(pos).getValue()).getDayReference().getValue());
+        assertEquals(2, ((Period) interpreter.getLastResult(pos).getValue()).getHourReference().getValue());
+        assertEquals(2, ((Period) interpreter.getLastResult(pos).getValue()).getMinuteReference().getValue());
+        assertEquals(3, ((Period) interpreter.getLastResult(pos).getValue()).getSecondReference().getValue());
+        assertEquals(5L, ((Period) interpreter.getLastResult(pos).getValue()).getAbsolutePeriodDifferenceReference().getValue());
     }
 
     @Test
@@ -226,12 +226,12 @@ public class InterpreterTests {
         AdditiveExpression expression = new AdditiveExpression(AdditiveOperator.PLUS, dateEx, periodEx, pos);
         interpreter.visit(expression);
         assertEquals(interpreter.getLastResult(pos).getValue().getClass(), Date.class);
-        assertEquals(2, ((Date) interpreter.getLastResult(pos).getValue()).getYear());
-        assertEquals(3, ((Date) interpreter.getLastResult(pos).getValue()).getMonth());
-        assertEquals(4, ((Date) interpreter.getLastResult(pos).getValue()).getDay());
-        assertEquals(5, ((Date) interpreter.getLastResult(pos).getValue()).getHour());
-        assertEquals(6, ((Date) interpreter.getLastResult(pos).getValue()).getMinute());
-        assertEquals(17, ((Date) interpreter.getLastResult(pos).getValue()).getSecond());
+        assertEquals(2, ((Date) interpreter.getLastResult(pos).getValue()).getYearReference().getValue());
+        assertEquals(3, ((Date) interpreter.getLastResult(pos).getValue()).getMonthReference().getValue());
+        assertEquals(4, ((Date) interpreter.getLastResult(pos).getValue()).getDayReference().getValue());
+        assertEquals(5, ((Date) interpreter.getLastResult(pos).getValue()).getHourReference().getValue());
+        assertEquals(6, ((Date) interpreter.getLastResult(pos).getValue()).getMinuteReference().getValue());
+        assertEquals(17, ((Date) interpreter.getLastResult(pos).getValue()).getSecondReference().getValue());
     }
 
     @Test
@@ -246,12 +246,12 @@ public class InterpreterTests {
         AdditiveExpression expression = new AdditiveExpression(AdditiveOperator.MINUS, dateEx, periodEx, pos);
         interpreter.visit(expression);
         assertEquals(interpreter.getLastResult(pos).getValue().getClass(), Date.class);
-        assertEquals(9, ((Date) interpreter.getLastResult(pos).getValue()).getYear());
-        assertEquals(8, ((Date) interpreter.getLastResult(pos).getValue()).getMonth());
-        assertEquals(7, ((Date) interpreter.getLastResult(pos).getValue()).getDay());
-        assertEquals(6, ((Date) interpreter.getLastResult(pos).getValue()).getHour());
-        assertEquals(5, ((Date) interpreter.getLastResult(pos).getValue()).getMinute());
-        assertEquals(4, ((Date) interpreter.getLastResult(pos).getValue()).getSecond());
+        assertEquals(9, ((Date) interpreter.getLastResult(pos).getValue()).getYearReference().getValue());
+        assertEquals(8, ((Date) interpreter.getLastResult(pos).getValue()).getMonthReference().getValue());
+        assertEquals(7, ((Date) interpreter.getLastResult(pos).getValue()).getDayReference().getValue());
+        assertEquals(6, ((Date) interpreter.getLastResult(pos).getValue()).getHourReference().getValue());
+        assertEquals(5, ((Date) interpreter.getLastResult(pos).getValue()).getMinuteReference().getValue());
+        assertEquals(4, ((Date) interpreter.getLastResult(pos).getValue()).getSecondReference().getValue());
     }
 
     @Test
@@ -266,13 +266,13 @@ public class InterpreterTests {
         AdditiveExpression expression = new AdditiveExpression(AdditiveOperator.PLUS, periodEx1, periodEx2, pos);
         interpreter.visit(expression);
         assertEquals(interpreter.getLastResult(pos).getValue().getClass(), Period.class);
-        assertEquals(2, ((Period) interpreter.getLastResult(pos).getValue()).getYear());
-        assertEquals(4, ((Period) interpreter.getLastResult(pos).getValue()).getMonth());
-        assertEquals(6, ((Period) interpreter.getLastResult(pos).getValue()).getDay());
-        assertEquals(8, ((Period) interpreter.getLastResult(pos).getValue()).getHour());
-        assertEquals(10, ((Period) interpreter.getLastResult(pos).getValue()).getMinute());
-        assertEquals(12, ((Period) interpreter.getLastResult(pos).getValue()).getSecond());
-        assertEquals(20, ((Period) interpreter.getLastResult(pos).getValue()).getAbsolutePeriodDifference());
+        assertEquals(2, ((Period) interpreter.getLastResult(pos).getValue()).getYearReference().getValue());
+        assertEquals(4, ((Period) interpreter.getLastResult(pos).getValue()).getMonthReference().getValue());
+        assertEquals(6, ((Period) interpreter.getLastResult(pos).getValue()).getDayReference().getValue());
+        assertEquals(8, ((Period) interpreter.getLastResult(pos).getValue()).getHourReference().getValue());
+        assertEquals(10, ((Period) interpreter.getLastResult(pos).getValue()).getMinuteReference().getValue());
+        assertEquals(12, ((Period) interpreter.getLastResult(pos).getValue()).getSecondReference().getValue());
+        assertEquals(20L, ((Period) interpreter.getLastResult(pos).getValue()).getAbsolutePeriodDifferenceReference().getValue());
     }
 
     @Test
@@ -287,12 +287,12 @@ public class InterpreterTests {
         AdditiveExpression expression = new AdditiveExpression(AdditiveOperator.MINUS, periodEx1, periodEx2, pos);
         interpreter.visit(expression);
         assertEquals(interpreter.getLastResult(pos).getValue().getClass(), Period.class);
-        assertEquals(1, ((Period) interpreter.getLastResult(pos).getValue()).getYear());
-        assertEquals(1, ((Period) interpreter.getLastResult(pos).getValue()).getMonth());
-        assertEquals(1, ((Period) interpreter.getLastResult(pos).getValue()).getDay());
-        assertEquals(1, ((Period) interpreter.getLastResult(pos).getValue()).getHour());
-        assertEquals(1, ((Period) interpreter.getLastResult(pos).getValue()).getMinute());
-        assertEquals(1, ((Period) interpreter.getLastResult(pos).getValue()).getSecond());
+        assertEquals(1, ((Period) interpreter.getLastResult(pos).getValue()).getYearReference().getValue());
+        assertEquals(1, ((Period) interpreter.getLastResult(pos).getValue()).getMonthReference().getValue());
+        assertEquals(1, ((Period) interpreter.getLastResult(pos).getValue()).getDayReference().getValue());
+        assertEquals(1, ((Period) interpreter.getLastResult(pos).getValue()).getHourReference().getValue());
+        assertEquals(1, ((Period) interpreter.getLastResult(pos).getValue()).getMinuteReference().getValue());
+        assertEquals(1, ((Period) interpreter.getLastResult(pos).getValue()).getSecondReference().getValue());
     }
 
     @Test

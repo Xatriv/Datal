@@ -64,19 +64,23 @@ main () {
 
     chain1();
 
-
+    print([Enter any string: ]);
     inputString = readString();
     print([User input string = ], inputString, [\n]);
 
+    print([Enter integer: ]);
     inputInt = readInt();
     print([User input int = ], inputInt, [\n]);
 
+    print([Enter double: ]);
     inputDouble = readDouble();
     print([User input double = ], inputDouble, [\n]);
 
+    print([Enter date: ]);
     inputDate = readDate();
     print([User input date = ], inputDate, [\n]);
 
+    print([Enter period: ]);
     inputPeriod = readPeriod();
     print([User input period = ], inputPeriod, [\n]);
 

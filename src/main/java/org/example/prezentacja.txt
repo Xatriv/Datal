@@ -1,7 +1,15 @@
 main() {
-    i = 10;
-    print(i, [\n]);
-    i = 20;
-    print(i, [\n]);
+    #i = 10;
+    #print(i, [\n]);
+    #i = 20;
+    #print(i, [\n]);
+    d1 = 2023Y:10M:4d:2h:0':0";
+    d1.second = 16;
+    print(d1.second, [\n]);
+    print(d1.second, [\n]);
+    print(d1.second, [\n]);
+    print(d1.second, [\n]);
+    print(d1.second, [\n]);
+    print(d1);
 
 }

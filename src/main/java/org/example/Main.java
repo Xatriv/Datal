@@ -60,7 +60,7 @@ public class Main {
             Interpreter interpreter = new Interpreter(eM, program);
 //            PrinterVisitor printer = new PrinterVisitor(fileName);
 //            program.accept(printer);
-            System.out.println("Errors: ");
+            System.out.println("\nErrors: ");
             eM.printErrors(Severity.INFO);
         }
     }

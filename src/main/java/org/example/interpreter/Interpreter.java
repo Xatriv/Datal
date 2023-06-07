@@ -8,8 +8,6 @@ import org.example.source.Position;
 import org.example.types.Date;
 import org.example.types.Period;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.*;
 
 public class Interpreter implements ProgramVisitor {
@@ -17,18 +15,18 @@ public class Interpreter implements ProgramVisitor {
     private final ErrorManager errorManager;
 
     private final Stack<FunctionCallContext> callStack = new Stack<>();
-    private Value lastResult;
+    private ValueReference lastResult;
     private final Hashtable<String, FunctionDef> functionDefs = new Hashtable<>();
 
-    private Value memberContext;
+    private ValueReference memberContext;
 
-    private Value moveLastResult() {
-        Value value = lastResult;
+    private ValueReference moveLastResult(Position position) {
+        ValueReference value = getLastResult(position);
         lastResult = null;
         return value;
     }
 
-    public Value getLastResult(Position position) {
+    public ValueReference getLastResult(Position position) {
         if (lastResult.getValue() == null) {
             errorManager.reportError(
                     new InterpreterErrorInfo(
@@ -123,7 +121,7 @@ public class Interpreter implements ProgramVisitor {
                 callStack.peek().setReturned(true);
                 break;
             } else if (i == statements.size() - 1) {
-                lastResult = new Value(null);
+                lastResult = new ValueReference(null);
             }
         }
         deleteBlockContext();
@@ -169,7 +167,7 @@ public class Interpreter implements ProgramVisitor {
         if (statement.getExpression() != null) {
             statement.getExpression().accept(this);
         } else {
-            lastResult = new Value(null);
+            lastResult = new ValueReference(null);
         }
     }
 
@@ -178,12 +176,12 @@ public class Interpreter implements ProgramVisitor {
         expression.getLeftExpression().accept(this);
         verifyInstance(lastResult.getValue(), List.of(Boolean.class), expression.getPosition());
         if ((Boolean) lastResult.getValue()) {
-            lastResult = new Value(true);
+            lastResult = new ValueReference(true);
             return;
         }
         expression.getRightExpression().accept(this);
         verifyInstance(lastResult.getValue(), List.of(Boolean.class), expression.getPosition());
-        lastResult = new Value(lastResult.getValue());
+        lastResult = new ValueReference(lastResult.getValue());
     }
 
     @Override
@@ -191,12 +189,12 @@ public class Interpreter implements ProgramVisitor {
         expression.getLeftExpression().accept(this);
         verifyInstance(lastResult.getValue(), List.of(Boolean.class), expression.getPosition());
         if (!(Boolean) lastResult.getValue()) {
-            lastResult = new Value(false);
+            lastResult = new ValueReference(false);
             return;
         }
         expression.getRightExpression().accept(this);
         verifyInstance(lastResult.getValue(), List.of(Boolean.class), expression.getPosition());
-        lastResult = new Value(lastResult.getValue());
+        lastResult = new ValueReference(lastResult.getValue());
     }
 
     @Override
@@ -236,7 +234,7 @@ public class Interpreter implements ProgramVisitor {
                     )
             );
         }
-        lastResult = new Value(result);
+        lastResult = new ValueReference(result);
     }
 
     @Override
@@ -259,7 +257,7 @@ public class Interpreter implements ProgramVisitor {
                             String.format("Incompatible additive operands: %s +- %s",
                                     left.getClass().getSimpleName(), right.getClass().getSimpleName())));
         }
-        lastResult = new Value(result);
+        lastResult = new ValueReference(result);
     }
 
     @Override
@@ -291,7 +289,7 @@ public class Interpreter implements ProgramVisitor {
                             String.format("Incompatible operands in multiplicative expression: %s */ %s",
                                     left.getClass(), right.getClass())));
         }
-        lastResult = new Value(result);
+        lastResult = new ValueReference(result);
     }
 
     @Override
@@ -299,9 +297,9 @@ public class Interpreter implements ProgramVisitor {
         expression.getExpression().accept(this);
         Object operand = getLastResult(expression.getExpression().getPosition()).getValue();
         if (operand instanceof Boolean && expression.getOperator() == NegationOperator.NOT) {
-            lastResult = new Value(!(Boolean) lastResult.getValue());
+            lastResult = new ValueReference(!(Boolean) lastResult.getValue());
         } else if (operand instanceof Number && expression.getOperator() == NegationOperator.MINUS) {
-            lastResult = new Value(OperationHandler.multiply(-1, lastResult.getValue()));
+            lastResult = new ValueReference(OperationHandler.multiply(-1, lastResult.getValue()));
         } else {
             errorManager.reportError(
                     new InterpreterErrorInfo(
@@ -312,53 +310,21 @@ public class Interpreter implements ProgramVisitor {
         }
     }
 
-    private void invokeSetter(MemberExpression expression, Object value, BlockContext context) {
-        Method method;
-        String objectName = ((IdentifierExpression) (expression.getObject())).getName();
-        String memberName = ((IdentifierExpression) (expression.getMember())).getName();
-        String firstLetter = memberName.substring(0, 1);
-        String restOfWord = memberName.substring(1);
-        String methodName = String.format("set%s%s", firstLetter.toUpperCase(), restOfWord);
-        Object identifiersObject = context.getLocalVariables().get(objectName);
-        try {
-            method = identifiersObject.getClass().getMethod(methodName, value.getClass());
-        } catch (NoSuchMethodException e) {
-            errorManager.reportError(
-                    new InterpreterErrorInfo(
-                            Severity.ERROR,
-                            expression.getPosition(),
-                            String.format("Object \"%s\" does not have any field named \"%s\"",
-                                    identifiersObject.getClass().getSimpleName(), memberName)));
-            return;
-        }
-        Object invocationResult;
-        try {
-            invocationResult = method.invoke(identifiersObject, value);
-        } catch (IllegalAccessException | InvocationTargetException e) {
-            errorManager.reportError(
-                    new InterpreterErrorInfo(
-                            Severity.ERROR,
-                            expression.getPosition(),
-                            String.format("Unable to access member \"%s\"", methodName)));
-            return;
-        }
-        lastResult = new Value(invocationResult);
-    }
 
     private void invokePeriodGetter(Period period, String name, Position position) {
         switch (name) {
             case "year":
-                lastResult = new Value(period.getYear());
+                lastResult = period.getYearReference(); break;
             case "month":
-                lastResult = new Value(period.getMonth());
+                lastResult = period.getMonthReference(); break;
             case "day":
-                lastResult = new Value(period.getDay());
+                lastResult = period.getDayReference(); break;
             case "hour":
-                lastResult = new Value(period.getHour());
+                lastResult = period.getHourReference(); break;
             case "minute":
-                lastResult = new Value(period.getMinute());
+                lastResult = period.getMinuteReference(); break;
             case "second":
-                lastResult = new Value(period.getSecond());
+                lastResult = period.getSecondReference(); break;
             default:
                 errorManager.reportError(
                         new InterpreterErrorInfo(
@@ -371,17 +337,17 @@ public class Interpreter implements ProgramVisitor {
     private void invokeDateGetter(Date date, String name, Position position) {
         switch (name) {
             case "year":
-                lastResult = new Value(date.getYear());
+                lastResult = date.getYearReference(); break;
             case "month":
-                lastResult = new Value(date.getMonth());
+                lastResult = date.getMonthReference(); break;
             case "day":
-                lastResult = new Value(date.getDay());
+                lastResult = date.getDayReference(); break;
             case "hour":
-                lastResult = new Value(date.getHour());
+                lastResult = date.getHourReference(); break;
             case "minute":
-                lastResult = new Value(date.getMinute());
+                lastResult = date.getMinuteReference(); break;
             case "second":
-                lastResult = new Value(date.getSecond());
+                lastResult = date.getSecondReference(); break;
             default:
                 errorManager.reportError(
                         new InterpreterErrorInfo(
@@ -391,43 +357,12 @@ public class Interpreter implements ProgramVisitor {
         }
     }
 
-    private void invokeGetterold(MemberExpression expression, BlockContext context) {
-        Method method;
-        String objectName = ((IdentifierExpression) (expression.getObject())).getName();
-        String memberName = ((IdentifierExpression) (expression.getMember())).getName();
-        String firstLetter = memberName.substring(0, 1);
-        String restOfWord = memberName.substring(1);
-        String methodName = String.format("get%s%s", firstLetter.toUpperCase(), restOfWord);
-        Object identifiersObject = context.getLocalVariables().get(objectName);
-        try {
-            method = identifiersObject.getClass().getMethod(methodName);
-        } catch (NoSuchMethodException e) {
-            errorManager.reportError(
-                    new InterpreterErrorInfo(
-                            Severity.ERROR,
-                            expression.getPosition(),
-                            String.format("Object \"%s\" does not have any field named \"%s\"",
-                                    identifiersObject.getClass().getSimpleName(), memberName)));
-            return;
-        }
-        Object invocationResult;
-        try {
-            invocationResult = method.invoke(identifiersObject);
-        } catch (IllegalAccessException | InvocationTargetException e) {
-            errorManager.reportError(
-                    new InterpreterErrorInfo(
-                            Severity.ERROR,
-                            expression.getPosition(),
-                            String.format("Unable to access member \"%s\"", methodName)));
-            return;
-        }
-        lastResult = new Value(invocationResult);
-    }
-
+    @SuppressWarnings("unused")
     private void invokePeriodMethod(Period period, String methodName, List<Object> arguments, Position position) {
+        //noinspection SwitchStatementWithTooFewBranches
         switch (methodName) {
             case "getDifference":
-                lastResult = new Value(period.getAbsolutePeriodDifference());
+                lastResult = period.getAbsolutePeriodDifferenceReference();
                 break;
             default:
                 new InterpreterErrorInfo(
@@ -437,10 +372,12 @@ public class Interpreter implements ProgramVisitor {
         }
     }
 
+    @SuppressWarnings("unused")
     private void invokeDateMethod(Date date, String methodName, List<Object> arguments, Position position) {
+        //noinspection SwitchStatementWithTooFewBranches
         switch (methodName) {
             case "calculateSecondsSinceNewEra":
-                lastResult = new Value(date.secondsSinceNewEra());
+                lastResult = new ValueReference(date.secondsSinceNewEra());
                 break;
             default:
                 new InterpreterErrorInfo(
@@ -462,9 +399,7 @@ public class Interpreter implements ProgramVisitor {
             if (lastResult.getValue() == null) {
                 addVariableToBlockContext(rightResult, identifierName);
             } else {
-                //This is wrong, this should assign rightResult to a variable on the left
-                 lastResult.getValue(). =  rightResult);
-                 lastResult =  null;
+                 lastResult.setValue(rightResult);
             }
             return;
         }
@@ -475,29 +410,15 @@ public class Interpreter implements ProgramVisitor {
                         new InterpreterErrorInfo(
                                 Severity.ERROR,
                                 left.getPosition(),
-                                String.format("Undefined variable: %s", "TODO"))); //TODO
+                                "Undefined access to an object"));
             }
-
-            //TODO idk if keep the following
-            Object object = ((MemberExpression) left).getObject();
-            verifyInstance(object, List.of(IdentifierExpression.class), left.getPosition());
-            String objectName = ((IdentifierExpression) object).getName();
-            var activeBlock = callStack.peek().getBlockContexts()
-                    .stream()
-                    .filter(b -> b.getLocalVariables().containsKey(objectName))
-                    .findFirst();
-            if (activeBlock.isEmpty()) {
-
-            } else {
-                invokeSetter((MemberExpression) left, rightResult, activeBlock.get());
-                lastResult = new Value(rightResult);
-            }
+            lastResult.setValue(rightResult);
         }
 
     }
 
     private void addVariableToBlockContext(Object variable, String identifierName) {
-        callStack.peek().getBlockContexts().get(0).addVariable(identifierName, new Value(variable));
+        callStack.peek().getBlockContexts().get(0).addVariable(identifierName, new ValueReference(variable));
     }
 
 
@@ -506,7 +427,7 @@ public class Interpreter implements ProgramVisitor {
         expression.getObject().accept(this);
 //        verifyInstance(expression.getObject(), List.of(IdentifierExpression.class, FunctionCallExpression.class), expression.getPosition());
         verifyInstance(lastResult.getValue(), List.of(Period.class, Date.class), expression.getPosition());
-        memberContext = moveLastResult();
+        memberContext = moveLastResult(expression.getPosition());
         expression.getMember().accept(this);
 
 
@@ -516,17 +437,17 @@ public class Interpreter implements ProgramVisitor {
 
     @Override
     public void visit(IntLiteralExpression expression) {
-        lastResult = new Value(expression.getValue());
+        lastResult = new ValueReference(expression.getValue());
     }
 
     @Override
     public void visit(DoubleLiteralExpression expression) {
-        lastResult = new Value(expression.getValue());
+        lastResult = new ValueReference(expression.getValue());
     }
 
     @Override
     public void visit(StringLiteralExpression expression) {
-        lastResult = new Value(expression.getValue());
+        lastResult = new ValueReference(expression.getValue());
     }
 
     @Override
@@ -540,12 +461,12 @@ public class Interpreter implements ProgramVisitor {
                             expression.getPosition(),
                             e.getMessage()));
         }
-        lastResult = new Value(expression.getValue());
+        lastResult = new ValueReference(expression.getValue());
     }
 
     @Override
     public void visit(PeriodLiteralExpression expression) {
-        lastResult = new Value(expression.getValue());
+        lastResult = new ValueReference(expression.getValue());
     }
 
     @Override
@@ -553,27 +474,21 @@ public class Interpreter implements ProgramVisitor {
         if (memberContext != null) {
             if (memberContext.getValue() instanceof Period) {
                 invokePeriodGetter((Period) memberContext.getValue(), expression.getName(), expression.getPosition());
-//                invokePeriodMethod( ((Period) memberContext.getValue()), expression.getName(), arguments, expression.getPosition());
             }
             if (memberContext.getValue() instanceof Date) {
                 invokeDateGetter((Date) memberContext.getValue(), expression.getName(), expression.getPosition());
-//                invokeDateMethod( ((Date) memberContext.getValue()), expression.getName(), arguments, expression.getPosition());
             }
+            memberContext = null;
+            return;
         }
 
         for (BlockContext context : callStack.peek().getBlockContexts()) {
-            Value value = context.getLocalVariables().get(expression.getName());
+            ValueReference value = context.getLocalVariables().get(expression.getName());
             if (value != null) {
                 lastResult = value;
                 return;
-//            }
             }
-            lastResult = new Value(null);
-//        errorManager.reportError(
-//                new InterpreterErrorInfo(
-//                        Severity.ERROR,
-//                        expression.getPosition(),
-//                        String.format("Undefined variable: %s", expression.getName())));
+            lastResult = new ValueReference(null);
         }
     }
 
@@ -582,8 +497,7 @@ public class Interpreter implements ProgramVisitor {
         List<Object> arguments = new ArrayList<>(List.of());
         for (var arg : expression.getArguments()) {
             arg.accept(this);
-            arguments.add(moveLastResult().getValue());
-//            arguments.add(getLastResult(arg.getPosition()).getValue());
+            arguments.add(moveLastResult(arg.getPosition()).getValue());
         }
         if (memberContext != null) {
             if (memberContext.getValue() instanceof Period) {
@@ -592,6 +506,7 @@ public class Interpreter implements ProgramVisitor {
             if (memberContext.getValue() instanceof Date) {
                 invokeDateMethod(((Date) memberContext.getValue()), expression.getName(), arguments, expression.getPosition());
             }
+            memberContext = null;
         } else {
             FunctionDef function;
             if ((function = functionDefs.get(expression.getName())) == null) {
@@ -602,7 +517,7 @@ public class Interpreter implements ProgramVisitor {
                                 String.format("Reference to an undefined function: %s", expression.getName())));
                 return;
             }
-            callStack.push(new FunctionCallContext(arguments));
+            callStack.push(new FunctionCallContext(arguments, expression.getPosition()));
             function.accept(this);
             callStack.pop();
         }
@@ -625,7 +540,7 @@ public class Interpreter implements ProgramVisitor {
         reportWarnIfArgsInReadFunction();
         Scanner scanner = new Scanner(System.in);
         String stringValue = scanner.nextLine();
-        lastResult = new Value(stringValue);
+        lastResult = new ValueReference(stringValue);
     }
 
     @Override
@@ -644,7 +559,7 @@ public class Interpreter implements ProgramVisitor {
                     )
             );
         }
-        lastResult = new Value(intValue);
+        lastResult = new ValueReference(intValue);
     }
 
     @Override
@@ -663,7 +578,7 @@ public class Interpreter implements ProgramVisitor {
                     )
             );
         }
-        lastResult = new Value(doubleValue);
+        lastResult = new ValueReference(doubleValue);
     }
 
     @Override
@@ -680,7 +595,7 @@ public class Interpreter implements ProgramVisitor {
                     )
             );
         }
-        lastResult = new Value(dateValue);
+        lastResult = new ValueReference(dateValue);
     }
 
     @Override
@@ -697,7 +612,7 @@ public class Interpreter implements ProgramVisitor {
                     )
             );
         }
-        lastResult = new Value(periodValue);
+        lastResult = new ValueReference(periodValue);
     }
 
     @Override

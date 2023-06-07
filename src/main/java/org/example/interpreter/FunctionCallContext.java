@@ -17,8 +17,9 @@ public class FunctionCallContext implements Scope {
     @Getter @Setter
     Boolean returned;
 
-    public FunctionCallContext(List<Object> arguments) {
+    public FunctionCallContext(List<Object> arguments, Position position) {
         this.arguments = arguments;
+        this.position = position;
         this.returned = false;
     }
 }

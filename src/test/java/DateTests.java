@@ -9,13 +9,13 @@ public class DateTests {
     @Test
     void simpleDateTest() {
         var date = new Date(true, 2023, 5, 30, 23, 53, 10);
-        assertTrue(date.isAD());
-        assertEquals(2023, date.getYear());
-        assertEquals(5, date.getMonth());
-        assertEquals(30, date.getDay());
-        assertEquals(23, date.getHour());
-        assertEquals(53, date.getMinute());
-        assertEquals(10, date.getSecond());
+        assertTrue((Boolean) date.getIsADReference().getValue());
+        assertEquals(2023, date.getYearReference().getValue());
+        assertEquals(5, date.getMonthReference().getValue());
+        assertEquals(30, date.getDayReference().getValue());
+        assertEquals(23, date.getHourReference().getValue());
+        assertEquals(53, date.getMinuteReference().getValue());
+        assertEquals(10, date.getSecondReference().getValue());
     }
 
     @Test
@@ -184,7 +184,7 @@ public class DateTests {
     void datesCompareMonthBCTest(){
         var date1 = new Date(false, 2023, 10, 1, 23, 5, 6);
         var date2 = new Date(false, 2023, 6, 1, 23, 5, 6);
-        assertEquals(-1, Date.compare(date1, date2));
+        assertEquals(1, Date.compare(date1, date2));
     }
 
     @Test
@@ -198,7 +198,7 @@ public class DateTests {
     void datesCompareDayBCTest(){
         var date1 = new Date(false, 2023, 6, 10, 23, 5, 6);
         var date2 = new Date(false, 2023, 6, 1, 23, 5, 6);
-        assertEquals(-1, Date.compare(date1, date2));
+        assertEquals(1, Date.compare(date1, date2));
     }
 
     @Test
@@ -212,7 +212,7 @@ public class DateTests {
     void datesCompareHourBCTest(){
         var date1 = new Date(false, 2023, 6, 1, 23, 5, 6);
         var date2 = new Date(false, 2023, 6, 1, 22, 5, 6);
-        assertEquals(-1, Date.compare(date1, date2));
+        assertEquals(1, Date.compare(date1, date2));
     }
 
     @Test
@@ -226,7 +226,7 @@ public class DateTests {
     void datesCompareMinuteBCTest(){
         var date1 = new Date(false, 2023, 6, 1, 23, 10, 6);
         var date2 = new Date(false, 2023, 6, 1, 23, 5, 6);
-        assertEquals(-1, Date.compare(date1, date2));
+        assertEquals(1, Date.compare(date1, date2));
     }
 
     @Test
@@ -240,20 +240,20 @@ public class DateTests {
     void datesCompareSecondBCTest(){
         var date1 = new Date(false, 2023, 6, 1, 23, 5, 10);
         var date2 = new Date(false, 2023, 6, 1, 23, 5, 6);
-        assertEquals(-1, Date.compare(date1, date2));
+        assertEquals(1, Date.compare(date1, date2));
     }
 
     @Test
     void dateFromStringTest(){
         Date date1 = Date.fromString("2023AD:6M:1D:23H:5':6\"");
         assertNotNull(date1);
-        assertTrue(date1.isAD());
-        assertEquals(2023, date1.getYear());
-        assertEquals(6, date1.getMonth());
-        assertEquals(1, date1.getDay());
-        assertEquals(23, date1.getHour());
-        assertEquals(5, date1.getMinute());
-        assertEquals(6, date1.getSecond());
+        assertTrue((Boolean) date1.getIsADReference().getValue());
+        assertEquals(2023, date1.getYearReference().getValue());
+        assertEquals(6, date1.getMonthReference().getValue());
+        assertEquals(1, date1.getDayReference().getValue());
+        assertEquals(23, date1.getHourReference().getValue());
+        assertEquals(5, date1.getMinuteReference().getValue());
+        assertEquals(6, date1.getSecondReference().getValue());
     }
 
     @Test
@@ -312,12 +312,12 @@ public class DateTests {
     void periodFromStringTest(){
         Period period1 = Period.fromString("   2023y  6M 1D 23H 5' 6\" ");
         assertNotNull(period1);
-        assertEquals(2023, period1.getYear());
-        assertEquals(6, period1.getMonth());
-        assertEquals(1, period1.getDay());
-        assertEquals(23, period1.getHour());
-        assertEquals(5, period1.getMinute());
-        assertEquals(6, period1.getSecond());
+        assertEquals(2023, period1.getYearReference().getValue());
+        assertEquals(6, period1.getMonthReference().getValue());
+        assertEquals(1, period1.getDayReference().getValue());
+        assertEquals(23, period1.getHourReference().getValue());
+        assertEquals(5, period1.getMinuteReference().getValue());
+        assertEquals(6, period1.getSecondReference().getValue());
     }
 
     @Test
@@ -331,12 +331,12 @@ public class DateTests {
         Period period1 = new Period(1, 2, 3, 4, 5, 6, 0L);
         Period period2 = new Period(2, 3, 4, 5, 6, 7, 0L);
         Period result = period2.add(period1);
-        assertEquals(3, result.getYear());
-        assertEquals(5, result.getMonth());
-        assertEquals(7, result.getDay());
-        assertEquals(9, result.getHour());
-        assertEquals(11, result.getMinute());
-        assertEquals(13, result.getSecond());
+        assertEquals(3, result.getYearReference().getValue());
+        assertEquals(5, result.getMonthReference().getValue());
+        assertEquals(7, result.getDayReference().getValue());
+        assertEquals(9, result.getHourReference().getValue());
+        assertEquals(11, result.getMinuteReference().getValue());
+        assertEquals(13, result.getSecondReference().getValue());
     }
 
     @Test
@@ -344,12 +344,12 @@ public class DateTests {
         Period period1 = new Period(1, 2, 3, 4, 5, 6, 0L);
         Period period2 = new Period(2, 3, 4, 5, 6, 7, 0L);
         Period result = period2.subtract(period1);
-        assertEquals(1, result.getYear());
-        assertEquals(1, result.getMonth());
-        assertEquals(1, result.getDay());
-        assertEquals(1, result.getHour());
-        assertEquals(1, result.getMinute());
-        assertEquals(1, result.getSecond());
+        assertEquals(1, result.getYearReference().getValue());
+        assertEquals(1, result.getMonthReference().getValue());
+        assertEquals(1, result.getDayReference().getValue());
+        assertEquals(1, result.getHourReference().getValue());
+        assertEquals(1, result.getMinuteReference().getValue());
+        assertEquals(1, result.getSecondReference().getValue());
     }
 }
 

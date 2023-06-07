@@ -1,28 +1,90 @@
 package org.example.types;
 
-import lombok.Getter;
-import lombok.Setter;
+import org.example.interpreter.ValueReference;
 
 import java.util.Arrays;
 import java.util.Hashtable;
 
-@Getter
-@Setter
 public class Date {
-    @Getter
-    private boolean isAD;
-    @Getter
-    private int year;
-    @Getter
-    private int month;
-    @Getter
-    private int day;
-    @Getter
-    private int hour;
-    @Getter
-    private int minute;
-    @Getter
-    private int second;
+    private final ValueReference isAD;
+    private final ValueReference year;
+    private final ValueReference month;
+    private final ValueReference day;
+    private final ValueReference hour;
+    private final ValueReference minute;
+    private final ValueReference second;
+
+    public ValueReference getIsADReference(){
+        return this.isAD;
+    }
+    public ValueReference getYearReference(){
+        return year;
+    }
+    public ValueReference getMonthReference(){
+        return month;
+    }
+    public ValueReference getDayReference(){
+        return day;
+    }
+    public ValueReference getHourReference(){
+        return hour;
+    }
+    public ValueReference getMinuteReference(){
+        return minute;
+    }
+    public ValueReference getSecondReference(){
+        return second;
+    }
+
+    public void setAD(Boolean isAD){
+        this.isAD.setValue(isAD);
+    }
+    public void setYear(Integer year){
+        this.year.setValue(year);
+        verify();
+    }
+    public void setMonth(Integer month){
+        this.month.setValue(month);
+        verify();
+    }
+    public void setDay(Integer day){
+        this.day.setValue(day);
+        verify();
+    }
+    public void setHour(Integer hour){
+        this.hour.setValue(hour);
+        verify();
+    }
+    public void setMinute(Integer minute){
+        this.minute.setValue(minute);
+        verify();
+    }
+    public void setSecond(Integer second){
+        this.second.setValue(second);
+        verify();
+    }
+
+    private Boolean isAD(){
+        return (Boolean) getIsADReference().getValue();
+    }
+    private Integer getYear(){
+        return (Integer) getYearReference().getValue();
+    }
+    private Integer getMonth(){
+        return (Integer) getMonthReference().getValue();
+    }
+    private Integer getDay(){
+        return (Integer) getDayReference().getValue();
+    }
+    private Integer getHour(){
+        return (Integer) getHourReference().getValue();
+    }
+    private Integer getMinute(){
+        return (Integer) getMinuteReference().getValue();
+    }
+    private Integer getSecond(){
+        return (Integer) getSecondReference().getValue();
+    }
 
     public static Hashtable<Integer, Integer> daysInMonth = new Hashtable<>() {{
         put(1, 31);
@@ -50,15 +112,20 @@ public class Date {
     }
 
     public static int compare(Date date1, Date date2) {
-        if (date1.isAD() != date2.isAD()) return Boolean.compare(date1.isAD(), date2.isAD());
-        int flip = date1.isAD() ? 1 : -1;
-        if (date1.getYear() != date2.getYear()) return flip * Integer.compare(date1.getYear(), date2.getYear());
-        if (date1.getMonth() != date2.getMonth()) return Integer.compare(date1.getMonth(), date2.getMonth());
-        if (date1.getDay() != date2.getDay()) return Integer.compare(date1.getDay(), date2.getDay());
-        if (date1.getHour() != date2.getHour()) return Integer.compare(date1.getHour(), date2.getHour());
-        if (date1.getMinute() != date2.getMinute()) return Integer.compare(date1.getMinute(), date2.getMinute());
-        if (date1.getSecond() != date2.getSecond()) return Integer.compare(date1.getSecond(), date2.getSecond());
-        return 0;
+        int result = Boolean.compare((Boolean) date1.getIsADReference().getValue(), (Boolean) date2.getIsADReference().getValue());
+        if ( result != 0) return result;
+        int flip = ((Boolean) date1.getIsADReference().getValue()) ? 1 : -1;
+        result = flip * Integer.compare((Integer) date1.getYearReference().getValue(), (Integer) date2.getYearReference().getValue());
+        if ( result != 0) return result;
+        result = Integer.compare((Integer) date1.getMonthReference().getValue(), (Integer) date2.getMonthReference().getValue());
+        if ( result != 0) return result;
+        result = Integer.compare((Integer) date1.getDayReference().getValue(), (Integer) date2.getDayReference().getValue());
+        if ( result != 0) return result;
+        result = Integer.compare((Integer) date1.getHourReference().getValue(), (Integer) date2.getHourReference().getValue());
+        if ( result != 0) return result;
+        result = Integer.compare((Integer) date1.getMinuteReference().getValue(), (Integer) date2.getMinuteReference().getValue());
+        if ( result != 0) return result;
+        return Integer.compare((Integer) date1.getSecondReference().getValue(), (Integer) date2.getSecondReference().getValue());
     }
 
     public static Date fromString(String string){
@@ -146,83 +213,76 @@ public class Date {
 
     @Override
     public String toString() {
-        return (isAD ? "AD " : "BC ") +
-                year + "." + (month < 10 ? 0 : "") +
-                month + "." + (day < 10 ? 0 : "") +
-                day + " " + (hour < 10 ? 0 : "") +
-                hour + ":" + (minute < 10 ? 0 : "") +
-                minute + ":" + (second < 10 ? 0 : "") + second;
+        return (isAD() ? "AD " : "BC ") + getYear() + "." +
+                (getMonth() < 10 ? 0 : "") + getMonth() + "." +
+                (getDay() < 10 ? 0 : "") + getDay() + " " +
+                (getHour() < 10 ? 0 : "") + getHour() + ":" +
+                (getMinute() < 10 ? 0 : "") + getMinute() + ":" +
+                (getSecond() < 10 ? 0 : "") + getSecond();
     }
 
     public Date(Boolean isAD, int year, int month, int day, int hour, int minute, int second) {
-        this.isAD = isAD;
-        this.year = year;
-        this.month = month;
-        this.day = day;
-        this.hour = hour;
-        this.minute = minute;
-        this.second = second;
+        this.isAD = new ValueReference(isAD);
+        this.year = new ValueReference(year);
+        this.month = new ValueReference(month);
+        this.day = new ValueReference(day);
+        this.hour = new ValueReference(hour);
+        this.minute = new ValueReference(minute);
+        this.second = new ValueReference(second);
         verify();
     }
 
     public void verify() {
-        if (year < 1) {
+        if (getYear() < 1) {
             throw new IllegalArgumentException("Invalid years value");
         }
-        if (month <= 0 || 12 < month) {
+        if (getMonth() <= 0 || 12 < getMonth()) {
             throw new IllegalArgumentException("Invalid month value");
         }
-        if (day <= 0 || (isLeapYear(year) && month == 2 && day > 29) || day > daysInMonth.get(month)) {
+        if (getDay() <= 0 || (isLeapYear(getYear()) && getMonth() == 2 && getDay() > 29) || getDay() > daysInMonth.get(getMonth())) {
             throw new IllegalArgumentException("Invalid days value");
         }
-        if (hour < 0 || 24 <= hour) {
+        if (getHour() < 0 || 24 <= getHour()) {
             throw new IllegalArgumentException("Invalid hours value");
         }
-        if (minute < 0 || 60 <= minute) {
+        if (getMinute() < 0 || 60 <= getMinute()) {
             throw new IllegalArgumentException("Invalid minutes value");
         }
-        if (second < 0 || 60 <= second) {
+        if (getSecond() < 0 || 60 <= getSecond()) {
             throw new IllegalArgumentException("Invalid seconds value");
         }
     }
 
     public boolean equals(Date otherDate) {
-        return isAD == otherDate.isAD()
-                && year == otherDate.year
-                && month == otherDate.month
-                && day == otherDate.getDay()
-                && hour == otherDate.getHour()
-                && minute == otherDate.getMinute()
-                && second == otherDate.getSecond();
+        return compare(this, otherDate) == 0;
     }
 
     public long secondsSinceNewEra() {
-        long seconds = second;
-        seconds += 60L * minute;
-        seconds += 60L * 60L * hour;
-        seconds += 60L * 60L * 24L * (day - 1);
-        if (month >= 2)
+        long seconds = getSecond();
+        seconds += 60L * getMinute();
+        seconds += 60L * 60L * getHour();
+        seconds += 60L * 60L * 24L * (getDay() - 1);
+        if (getMonth() >= 2)
             seconds += 60L * 60L * 24L * 31; //January
-        if (month >= 3) {
-            if (isLeapYear(year)) {
+        if (getMonth() >= 3) {
+            if (isLeapYear(getYear())) {
                 seconds += 60L * 60L * 24L * 29; //Leap February
             } else {
                 seconds += 60L * 60L * 24L * 28; //Regular February
             }
-            for (int i = 3; i <= month - 1; i++) {
+            for (int i = 3; i <= getMonth() - 1; i++) {
                 seconds += 60L * 60L * 24L * daysInMonth.get(i);
             }
         }
-        seconds += 60L * 60L * 24L * 366L * leapYearsUntil(year);
-        long yearsInSeconds = 60L * 60L * 24L * 365L * (year - leapYearsUntil(year) - 1);
-        if (!isAD) yearsInSeconds *= -1;
+        seconds += 60L * 60L * 24L * 366L * leapYearsUntil(getYear());
+        long yearsInSeconds = 60L * 60L * 24L * 365L * (getYear() - leapYearsUntil(getYear()) - 1);
+        if (!isAD()) yearsInSeconds *= -1;
         seconds += yearsInSeconds;
         return seconds;
     }
 
     private void addToYear(int years){
-        //TODO verify
-        int signedYear = year * (isAD() ? 1 : -1);
+        int signedYear = getYear() * (isAD() ? 1 : -1);
         if (years > 0  && signedYear > 0){
             setYear(signedYear + years);
         } else if (years < 0 && signedYear > 0){
@@ -246,15 +306,13 @@ public class Date {
 
     @SuppressWarnings("SameParameterValue")
     private void addToMonth(int months){
-        //TODO completely broken for negatives
         int years = (getMonth() + months) / 12;
         addToYear(years);
         setMonth((getMonth() + months) % 12);
     }
 
     private void addToDay(int days){
-        //TODO completely broken for negatives
-        while (getDay() + days >= daysInMonth.get(month)){
+        while (getDay() + days >= daysInMonth.get(getMonth())){
             days -= daysInMonth.get(getMonth()) - getDay();
             addToMonth(1);
             setDay(1);
@@ -263,7 +321,6 @@ public class Date {
     }
 
     private void addToHour(int hours){
-        //TODO completely broken for negatives
         int days = (getHour() + hours) / 24;
         if (getHour() + hours < 0){
             days--;
@@ -273,7 +330,6 @@ public class Date {
     }
 
     private void addToMinute(int minutes){
-        //TODO completely broken for negatives
         int hours = (getMinute() + minutes) / 60;
         if (getMinute() + minutes < 0){
             hours--;
@@ -303,26 +359,25 @@ public class Date {
 
     public Date add(Period period) {
         Date original = new Date(isAD(), getYear(), getMonth(), getDay(), getHour(), getMinute(), getSecond());
-        original.addToYear(period.getYear());
-        original.addToMonth(period.getMonth());
-        original.addToDay(period.getDay());
-        original.addToHour(period.getHour());
-        original.addToMinute(period.getMinute());
-        original.addToSecond(period.getSecond());
-        original.addToSecond(period.getAbsolutePeriodDifference());
+        original.addToYear((Integer) period.getYearReference().getValue());
+        original.addToMonth((Integer) period.getMonthReference().getValue());
+        original.addToDay((Integer) period.getDayReference().getValue());
+        original.addToHour((Integer) period.getHourReference().getValue());
+        original.addToMinute((Integer) period.getMinuteReference().getValue());
+        original.addToSecond((Integer) period.getSecondReference().getValue());
+        original.addToSecond((Long) period.getAbsolutePeriodDifferenceReference().getValue());
         return original;
     }
 
     public Date subtract(Period period) {
-        //TODO this is completely unhandled and untested
         Date original = new Date(isAD(), getYear(), getMonth(), getDay(), getHour(), getMinute(), getSecond());
-        original.addToYear(-period.getYear());
-        original.addToMonth(-period.getMonth());
-        original.addToDay(-period.getDay());
-        original.addToHour(-period.getHour());
-        original.addToMinute(-period.getMinute());
-        original.addToSecond(-period.getSecond());
-        original.addToSecond(-period.getAbsolutePeriodDifference());
+        original.addToYear(- (Integer) period.getYearReference().getValue());
+        original.addToMonth(- (Integer) period.getMonthReference().getValue());
+        original.addToDay(- (Integer) period.getDayReference().getValue());
+        original.addToHour(- (Integer) period.getHourReference().getValue());
+        original.addToMinute(- (Integer) period.getMinuteReference().getValue());
+        original.addToSecond(- (Integer) period.getSecondReference().getValue());
+        original.addToSecond(- (Long) period.getAbsolutePeriodDifferenceReference().getValue());
         return original;
     }
 
