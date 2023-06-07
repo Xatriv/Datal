@@ -232,6 +232,16 @@ public class Date {
         verify();
     }
 
+    public Date(Date date){
+        this.isAD = new ValueReference(date.isAD.getValue());
+        this.year = new ValueReference(date.year.getValue());
+        this.month = new ValueReference(date.month.getValue());
+        this.day = new ValueReference(date.day.getValue());
+        this.hour = new ValueReference(date.hour.getValue());
+        this.minute = new ValueReference(date.minute.getValue());
+        this.second = new ValueReference(date.second.getValue());
+    }
+
     public void verify() {
         if (getYear() < 1) {
             throw new IllegalArgumentException("Invalid years value");
@@ -384,4 +394,5 @@ public class Date {
     public Period subtract(Date date) {
         return new Period(0, 0, 0, 0, 0, 0, secondsSinceNewEra() - date.secondsSinceNewEra() );
     }
+
 }

@@ -155,6 +155,16 @@ public class Period {
         this.absolutePeriodDifference = new ValueReference(end.secondsSinceNewEra() - start.secondsSinceNewEra());
     }
 
+    public Period(Period period){
+        this.year = new ValueReference(period.year.getValue());
+        this.month = new ValueReference(period.month.getValue());
+        this.day = new ValueReference(period.day.getValue());
+        this.hour = new ValueReference(period.hour.getValue());
+        this.minute = new ValueReference(period.minute.getValue());
+        this.second = new ValueReference(period.second.getValue());
+        this.absolutePeriodDifference = new ValueReference(period.absolutePeriodDifference.getValue());
+    }
+
     @Override
     public String toString() {
         return getYear() + "." + getMonth() + "." + getDay() + " " + getHour() + ":" + getMinute() + ":"

@@ -488,8 +488,8 @@ public class Interpreter implements ProgramVisitor {
                 lastResult = value;
                 return;
             }
-            lastResult = new ValueReference(null);
         }
+        lastResult = new ValueReference(null);
     }
 
     @Override
@@ -497,7 +497,14 @@ public class Interpreter implements ProgramVisitor {
         List<Object> arguments = new ArrayList<>(List.of());
         for (var arg : expression.getArguments()) {
             arg.accept(this);
-            arguments.add(moveLastResult(arg.getPosition()).getValue());
+            var argLastResult = moveLastResult(arg.getPosition()).getValue();
+            if (argLastResult instanceof Period){
+                arguments.add(new Period ( (Period) argLastResult));
+            } else if (argLastResult instanceof Date){
+                arguments.add(new Date ( (Date) argLastResult));
+            } else {
+                arguments.add(argLastResult);
+            }
         }
         if (memberContext != null) {
             if (memberContext.getValue() instanceof Period) {

@@ -26,11 +26,9 @@ public class ErrorManager {
     public void reportError(CodeErrorInfo err){
         errors.add(err);
         if (err.getSeverity() == Severity.ERROR){
-            printErrors(Severity.INFO);
             throw new CodeError(err);
         }
         if (0 <= maxErrors && maxErrors < errors.size()){
-            printErrors(Severity.INFO);
             throw new MaxErrorsExceededError(maxErrors);
         }
     }

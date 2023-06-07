@@ -1,15 +1,27 @@
 main() {
     #i = 10;
     #print(i, [\n]);
-    #i = 20;
-    #print(i, [\n]);
+    i = 20;
+    print(i, [\n]);
+    fun2(i);
+    print(i, [\n]);
     d1 = 2023Y:10M:4d:2h:0':0";
     d1.second = 16;
-    print(d1.second, [\n]);
-    print(d1.second, [\n]);
-    print(d1.second, [\n]);
-    print(d1.second, [\n]);
-    print(d1.second, [\n]);
-    print(d1);
+    print(d1.hour, [\n]);
+    fun(d1);
+    print(d1.hour, [\n]);
 
+    print(10/0);
+}
+
+fun(arg1){
+   print([ARG1 przed: ], arg1.hour, [\n]);
+   arg1.hour = 10;
+   print([ARG1 po: ], arg1.hour, [\n]);
+}
+
+fun2(arg2){
+   print([ARG2 przed: ], arg2, [\n]);
+   arg2 = 10;
+   print([ARG2 po: ], arg2, [\n]);
 }
